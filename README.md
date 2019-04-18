@@ -1,20 +1,23 @@
-Package gparse processes Golang markup language tokens: initially
+# gparse
+
+Package `gparse` processes Golang markup language tokens: initially
 XML, but with support for other flavors of LwDITA markup RSN (HTML5,
-Markdown-XP). 
+Markdown-XP).
 
 Files in this directory use Markdown, so use `godoc2md` on'em.
 
-This package makes own-versions of Golang XML structures so that
+This package makes its own versions of Golang XML structures so that
 they get sensible new names and handy methods.
 
-Two shortened names (Att *Attribute*, Elm *Element*) keep code readable.
+Two shortened names (`Att` *Attribute*, `Elm` *Element*) keep code readable.
 
 ### About XML content, including mixed content
 
 When working with XML we can generally distinguish three types of files:
-- Record-oriented XML data - expressed using XML elements
-- Natural language XML documents - also expressed using XML elements,
-and known as **mixed content**
+- Record-oriented XML data - expressed using XML elements, that contain
+only other elements
+- Mixed content XML documents - also expressed using XML elements,
+that can also contain text, not just other elements  
 - Validation rules - generally expressed as XSD, RNG, or DTD. It is
 interesting to note that DTDs actually obey the same fundamental XML
 syntax rules as the other two types (record-oriented, mixed content);
