@@ -2,6 +2,7 @@ package gparse
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	S "strings"
 
@@ -15,6 +16,7 @@ func XmlTokenizeBuffer(s string) (xtokens []xml.Token, err error) {
 	var e error
 	var T, TT xml.Token
 	xtokens = make([]xml.Token, 0, 100)
+	// println("(DD) XmlTokenizeBuffer:", s)
 
 	r := S.NewReader(s)
 	var parser = xml.NewDecoder(r)
@@ -51,5 +53,6 @@ func XmlTokenizeBuffer(s string) (xtokens []xml.Token, err error) {
 		TT = xml.CopyToken(T)
 		xtokens = append(xtokens, TT)
 	}
+	fmt.Printf("==> xtokens: got %d \n", len(xtokens))
 	return xtokens, nil
 }

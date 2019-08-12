@@ -73,6 +73,9 @@ func (xp XmlPreamble) String() string {
 // XmlCheckForPreamble only prints something. It could return a flag,
 // or even insert the standard XML preamble if one is not present.
 func XmlCheckForPreamble(p []*GToken) []*GToken {
+	if p == nil || len(p) == 0 {
+		panic("Bad arg to XmlCheckForPreamble")
+	}
 	if !ExtraInfo {
 		return p
 	}

@@ -28,7 +28,7 @@ import (
 type GAtt xml.Attr
 
 // GAttList is TODO? Replace with a map
-type GAttList []*GAtt
+type GAttList []GAtt // Used to be []*GAtt
 
 // Echo implements Markupper (and inserts a leading space).
 func (A GAtt) Echo() string {

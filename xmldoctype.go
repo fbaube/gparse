@@ -76,12 +76,13 @@ func NewXmlDoctypeInclMtype(s string) (*XmlDoctype, error) {
 	if s == "" {
 		return nil, nil
 	}
+	s = S.TrimSpace(s)
 	var pDT = new(XmlDoctype)
 	pDT.Mtype = make([]string, 3)
 
 	pDT.raw = s
 	if ExtraInfo {
-		println("    --> Processing raw doctype:\n     <|", s, "|>")
+		println("    --> Processing raw doctype:\n        ", s)
 	}
 
 	// Quick exit: HTML5

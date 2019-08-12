@@ -21,7 +21,7 @@ type XmlCatalog struct {
 	Prefer       string        `xml:"prefer,attr"`
 	XmlPublicIDs []XmlPublicID `xml:"public"`
 	// We do this so we can peel off the directory path
-	FU.FileFullName
+	FU.AbsFilePathParts
 }
 
 // XmlPublicID representa a line item from a parsed XML catalog file.
@@ -90,16 +90,17 @@ func (p *XmlCatalog) GetByPublicID(s string) *XmlPublicID {
 	return nil
 }
 
-// NewXmlCatalogFromFile is a convenience function that reads in the file
-// // and then passes the buffered file contents to the next function, below.
+// NewXmlCatalogFromFile is a convenience function that reads in the
+// file and then processes the file contents. It is not clear what the
+// constraints on the path are (but a relative path should work okay).
 func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	if fpath == "" {
 		return nil, nil
 	}
-	bb, e := ioutil.ReadFile(string(fpath))
+	bb, e := ioutil.ReadFile(fpath)
 	if e != nil {
 		println("==> Can't read catalog file<", fpath, ">, reason:", e.Error())
-		return nil, errors.Wrapf(e, "gxml.NewXmlCatalog.ReadFile<%s>", fpath)
+		return nil, errors.Wrapf(e, "gparse.NewXmlCatalog.ReadFile<%s>", fpath)
 	}
 
 	// ==============================
@@ -146,15 +147,16 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 
 	// ==============================
 
-	pXC.FileFullName = *FU.NewFileFullName(FU.RelFilePath(fpath))
-	fileDir := path.Dir(pXC.FileFullName.Echo())
+	// NOTE: The following code is UGLY and needs to be FIXED.
+	pXC.AbsFilePathParts = FU.AbsFilePath(fpath).GetAbsPathParts()
+	fileDir := path.Dir(pXC.AbsFilePathParts.Echo())
 	println("XML catalog fileDir:", fileDir)
 	for _, entry := range pXC.XmlPublicIDs {
-		println("  Entry AbsFilePath:", string(entry.AbsFilePath))
+		println("  Entry AbsFilePath:", entry.AbsFilePath)
 		// entry.AbsFilePath = FU.AbsFilePath(path.Join(fileDir, entry.AbsFilePath.S()))
 		entry.AbsFilePath = FU.AbsFilePath(fileDir + FU.PathSep + string(entry.AbsFilePath))
 	}
-	ok := pXC.ValidateCatalog()
+	ok := pXC.Validate()
 	if !ok {
 		panic("BAD CAT")
 	}
@@ -162,28 +164,6 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	// println("TODO: insert file path for catalog file")
 	return pXC, nil
 }
-
-/*
-// NewXmlCatalogFromBuffer takes a string, not an io.Reader.
-// Ya gotta figger it'll be useful at some point or another.
-func NewXmlCatalogFromBuffer(inString FU.FileContent) (pXC *XmlCatalog, err error) {
-	if inString == "" {
-		return nil, nil
-	}
-	// println("NewXmlCatalogFromBuffer:<< ", string(inString), ">>")
-	var pCat = new(XmlCatalog)
-	bb := []byte(inString)
-	e := xml.NewDecoder(bytes.NewReader(bb)).Decode(pCat)
-	if e != nil {
-		println("==> Can't process catalog file:", e.Error())
-		return nil, errors.Wrap(e, "gxml.NewXmlCatalog.xmlDecode")
-	}
-	// print(pCat.String())
-	println("parsed:<<", pCat.String(), ">>")
-	// TODO TODO for each failed ID, use the func that knows the slashes
-	return pCat, nil
-}
-*/
 
 func NewXmlPublicIDfromGToken(pT *GToken) (pID *XmlPublicID, err error) {
 	if pT == nil {
@@ -236,26 +216,28 @@ func NewXmlPublicIDfromGToken(pT *GToken) (pID *XmlPublicID, err error) {
 // It assumes that the catalog has already been loaded from an XML catalog
 // file on-disk. The return value is false if _any_ entry fails to load,
 // but also each entry has its own error field.
-func (p *XmlCatalog) ValidateCatalog() (retval bool) {
+func (p *XmlCatalog) Validate() (retval bool) {
 	retval = true
 	for i, pEntry := range p.XmlPublicIDs {
 		if "" == pEntry.PublicID {
 			println("OOPS:", pEntry.String())
 			panic(fmt.Sprintf("Missing Public ID in catalog entry[%d]: %s",
-				i, p.FileFullName.String()))
+				i, p.AbsFilePathParts.String()))
 		}
 		var abspath FU.AbsFilePath
-		abspath = p.FileFullName.DirPath.Append(FU.RelFilePath(pEntry.SystemID))
-		pIF, e := FU.NewInputFile(FU.RelFilePath(abspath)) // downcast
-		if e != nil {
+		abspath = p.AbsFilePathParts.DirPath.Append(string(pEntry.SystemID))
+		// pIF, e := FU.NewInputFile(FU.RelFilePath(abspath)) // downcast
+		pIF := FU.NewCheckedPath(abspath.S())
+		// (&FU.CheckedPath{RelFilePath: abspath.AsRelFP()}).Resolve() //.Check()
+		if pIF.Type() != "FILE" { // e != nil {
 			fmt.Printf("==> Catalog<%s>: Bad System ID / URI <%s> for Public ID <%s> \n",
-				p.FileFullName.String(), pEntry.SystemID, pEntry.PublicID)
+				p.AbsFilePathParts.String(), pEntry.SystemID, pEntry.PublicID)
 			retval = false
 			continue
 		}
 		// NOTE The loop variable "entry" is by value, not reference !
 		// entry.FilePath = FU.FilePath(pIF.FileFullName.String())
-		p.XmlPublicIDs[i].AbsFilePath = FU.AbsFilePath(pIF.FileFullName.String())
+		p.XmlPublicIDs[i].AbsFilePath = FU.AbsFilePath(pIF.AbsFilePathParts.String())
 
 		// Now do some fancy parsing of the Public ID
 		var s = pEntry.PublicID

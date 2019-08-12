@@ -37,8 +37,8 @@ func MakeFromXmlTokens(xtokens []xml.Token) (gtokens GTokenization, err error) {
 					A.Name.Space = "xml"
 				}
 				a := GAtt(A)
-				aa := &a
-				pGT.GAttList = append(pGT.GAttList, aa)
+				// aa := &a
+				pGT.GAttList = append(pGT.GAttList, a) // aa)
 			}
 			pGT.Keyword = ""
 			pGT.Otherwords = ""

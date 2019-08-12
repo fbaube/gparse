@@ -1,6 +1,5 @@
 package gparse
 
-// import FU "github.com/fbaube/fileutils"
 import (
 	"log"
 	"os"
@@ -37,8 +36,5 @@ var DTDtypeFileExtensions = []string{".dtd", ".mod", ".ent"}
 // What might also work is ".m*d*"
 var MarkdownFileExtensions = []string{".md", ".mdown", ".markdown", ".mkdn"}
 
-// SystemID could be FU.RelFilePath
 type SystemID string
-
-// PublicID could be FU.RelFilePath
-type PublicID string // Could be FU.RelFilePath
+type PublicID string
