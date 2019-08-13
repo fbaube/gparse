@@ -22,13 +22,6 @@ func init() {
 	logerr = log.New(os.Stderr, "ERR:gtoken> ", log.Lshortfile)
 }
 
-// XmlContype describes the top-down XML structure. Its use is TBS.
-type XmlContype string
-
-// XmlContypes, maybe DTDmod should be DTDelms.
-var XmlContypes = []XmlContype{"Unknown", "DTD", "DTDmod", "DTDent",
-	"RootTagData", "RootTagMixedContent", "MultipleRootTags", "INVALID"}
-
 // DTDtypeFileExtensions are for content guessing.
 var DTDtypeFileExtensions = []string{".dtd", ".mod", ".ent"}
 

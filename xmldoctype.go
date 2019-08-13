@@ -13,7 +13,7 @@ import (
 
 var knownRootTags = []string{"html", "map", "topic", "task", "concept", "reference"}
 
-// Copied from gfile.go:
+// Copied from mcfile.go:
 // [0] XML, BIN, TXT, MD
 // [1] IMG, CNT (Content), TOC (Map), SCH(ema)
 // [2] XML: per-DTD; BIN: fmt/filext; MD: flavor; SCH: fmt/filext

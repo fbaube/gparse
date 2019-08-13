@@ -9,6 +9,7 @@ package gparse
 //
 // When parsing an XML document, we have a DOCTYPE declaration like this:
 // <!DOCTYPE topic PUBLIC "-//OASIS//DTD LIGHTWEIGHT DITA Topic//EN" "lw-topic.dtd">
+//
 // "topic" is a root element ("RootTag") and the rest is an ExternalID.
 //
 // When parsing a DTD, we're sposta use an XML Catalog, but instead we will
@@ -19,16 +20,16 @@ package gparse
 // Each is an ExternalID.
 //
 // Therefore our "strings of interest" are PUBLIC ID's, which have the form
-// PUBLIC "-//OASIS//(PTClass) (PTDescription)//EN" ["optional SystemLiteral"]
+// `PUBLIC "-//OASIS//(PTClass) (PTDescription)//EN" ["optional SystemLiteral"]`
 // where PT = "Public Text", PTClass is "DTD" or "ELEMENTS", and PTDesc will
 // tell us about DITA or LwDITA (or possibly even something else).
 //
 // To be more exact, an ExternalID is one of these:
-// SYSTEM SystemLiteral (or)
-// PUBLIC PubidLiteral SystemLiteral
+// - SYSTEM SystemLiteral (or)
+// - PUBLIC PubidLiteral SystemLiteral
 // where
-// SystemLiteral is a quoted string containing anything except quote characters.
-// PuidLiteral contains CR, LF, " ", alphanumeric, and any of [-'()+,./:=?;!*#@$_%].
+// - SystemLiteral is a quoted string containing anything except quote characters.
+// - PuidLiteral contains CR, LF, " ", alphanumeric, and any of [-'()+,./:=?;!*#@$_%].
 
 // XmlInfo represents and stores :ul:
 // :: XML preamble ("<?xml ...")
@@ -41,7 +42,6 @@ package gparse
 // PUBLIC "-//OASIS//DTD LIGHTWEIGHT DITA (Map|Topic)//EN"
 //
 type XmlFileMeta struct {
-	XmlContype
 	// XmlPreamble (i.e. <?xml ...?> ) might be empty but it's not worth the
 	// trouble to make it a pointer and anyways if the file does not have one
 	// then just copy in the default preamble defined in the Golang library.

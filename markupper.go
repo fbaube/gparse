@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	// "github.com/fbaube/gfile"
 )
 
 // init checks that the structs that we *want*
