@@ -148,7 +148,7 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	// ==============================
 
 	// NOTE: The following code is UGLY and needs to be FIXED.
-	pXC.AbsFilePathParts = FU.AbsFilePath(fpath).GetAbsPathParts()
+	pXC.AbsFilePathParts = *FU.AbsFilePath(fpath).NewAbsPathParts()
 	fileDir := path.Dir(pXC.AbsFilePathParts.Echo())
 	println("XML catalog fileDir:", fileDir)
 	for _, entry := range pXC.XmlPublicIDs {
@@ -229,7 +229,7 @@ func (p *XmlCatalog) Validate() (retval bool) {
 		// pIF, e := FU.NewInputFile(FU.RelFilePath(abspath)) // downcast
 		pIF := FU.NewCheckedPath(abspath.S())
 		// (&FU.CheckedPath{RelFilePath: abspath.AsRelFP()}).Resolve() //.Check()
-		if pIF.Type() != "FILE" { // e != nil {
+		if pIF.PathType() != "FILE" { // e != nil {
 			fmt.Printf("==> Catalog<%s>: Bad System ID / URI <%s> for Public ID <%s> \n",
 				p.AbsFilePathParts.String(), pEntry.SystemID, pEntry.PublicID)
 			retval = false

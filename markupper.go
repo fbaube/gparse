@@ -29,7 +29,8 @@ func init() {
 	GT := GToken{nil, "SE", GN, GAL, "Kwd", "Othwds"}
 	MU = GT
 	fmt.Printf("GTkn OK as Markupper\n") // %s // %#v \n", MU.Echo(), MU.(GToken))
-	println(MU)
+
+	println("(obligatory Markupper)", MU)
 	// GL := gfile.GLink{}
 	// MU = GL
 	// fmt.Printf("GLnk OK: %s // %#v \n", MU.Echo(), MU.(GToken))
