@@ -26,8 +26,14 @@ func NewXmlPreamble(s string) (*XmlPreamble, error) {
 	if s == "" {
 		return nil, nil
 	}
+	i := S.Index(s, "?>")
+	if i == -1 || !S.HasPrefix(s, "<?xml ") {
+		return nil, fmt.Errorf("gtoken.preamble.new.oops:", s)
+	}
+	s = s[:i]
 	p := new(XmlPreamble)
-	p.Raw = s
+	s = S.TrimPrefix(s, "<?xml ")
+	p.Raw = S.TrimSpace(s)
 	var props, sides []string
 	var prop, varbl, value string
 	// Break at spaces to get one to three properties.
@@ -72,7 +78,7 @@ func (xp XmlPreamble) String() string {
 
 // XmlCheckForPreamble only prints something. It could return a flag,
 // or even insert the standard XML preamble if one is not present.
-func XmlCheckForPreamble(p []*GToken) []*GToken {
+func XmlCheckForPreambleToken(p []*GToken) []*GToken {
 	if p == nil || len(p) == 0 {
 		panic("Bad arg to XmlCheckForPreamble")
 	}
