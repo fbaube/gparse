@@ -41,7 +41,7 @@ func (GTzn GTokenization) DumpTo(w io.Writer) {
 			continue
 		}
 		fmt.Fprintf(w, "<!--[%02d]%s--> %s \n",
-			i, pGT.GTagTokType.LongForm(), pGT.Echo())
+			i, pGT.TTType.LongForm(), pGT.Echo())
 	}
 }
 
@@ -51,7 +51,7 @@ func (GTokzn GTokenization) HasDoctype() (bool, string) {
 	}
 	var pGT *GToken
 	for _, pGT = range GTokzn {
-		switch pGT.GTagTokType {
+		switch pGT.TTType {
 		case "Dir":
 			return true, pGT.Otherwords
 		}
@@ -65,7 +65,7 @@ func (gTkzn GTokenization) GetFirstByTag(s string) *GToken {
 		return nil
 	}
 	for _, p := range gTkzn {
-		if p.GName.Local == s && p.GTagTokType == "SE" {
+		if p.GName.Local == s && p.TTType == "SE" {
 			return p
 		}
 	}
@@ -82,7 +82,7 @@ func (gTkzn GTokenization) GetAllByTag(s string) GTokenization {
 	var ret GTokenization
 	ret = make(GTokenization, 0)
 	for _, p := range gTkzn {
-		if p.GName.Local == s && p.GTagTokType == "SE" {
+		if p.GName.Local == s && p.TTType == "SE" {
 			// fmt.Printf("found a match [%d] %s (NS:%s)\n", i, p.GName.Local, p.GName.Space)
 			ret = append(ret, p)
 		}

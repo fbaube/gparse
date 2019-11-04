@@ -7,6 +7,8 @@ package gparse
 import (
 	"encoding/xml"
 	"io"
+	"golang.org/x/net/html"
+	"github.com/yuin/goldmark/ast"
 )
 
 // GToken is meant to simplify & unify tokenisation across LwDITA's three
@@ -19,47 +21,66 @@ import (
 // - token type (defined by the enumeration `GTagTokType`)
 // - token text (tag name or non-tag text content)
 // - tag attributes
+// - whatever additional stuff is available for Markdown tokens
 //
 // NOTE that XML Directives are later "normalized", but that's another story.
 //
 type GToken struct {
-	// Keep the original token around, just in case.
+	// Keep the wrapped-original token around, just in case.
 	// Note that this `xml.Token` (or the entire `GToken`) might be erased in
 	// later processing, if (for example) it is a CDATA that has only whitespace.
-	xml.Token
+	BaseToken interface{}
+	Depth int
 	// GTagTokType enumerates the types of struct `GToken` and also the types of
 	// struct `GTag`, which are a strict superset. Therefore the two structs use
-	// a shared "type" enumeration.
-	//
+	// a shared "type" enumeration. <br/>
 	// NOTE that "EE" (`EndElement`) is OK for a `GToken.Type` but (probably)
 	// not for a `GTag.Type`, cos the existence of a matching `EndElement` for
 	// every `StartElement` should be assumed (but need not actually be present)
 	// in a valid `GTree`.
-	GTagTokType
-	// GName is for "SE" and "EE" *only*
+	TTType
+	// GName is for XML "SE" & "EE" *only* // GElmName? GTagName?
 	GName
-	// GAttList is for "SE" *only*
-	GAttList
-	// Keyword is for ProcInst "PI" and Directive "Dir", *only*
+	// GAtts is for XML "SE" *only*, and HTML, and maybe MKDN
+	GAtts
+	// Keyword is for XML ProcInst "PI" & Directive "Dir", *only*
 	Keyword string
 	// Otherwords is for all *except* "SE" and "EE"
 	Otherwords string
 }
 
+// BaseTokenType returns `XML`, `MKDN`, `HTML`, or future stuff TBD.
+func (p *GToken) BaseTokenType() string {
+	if p.BaseToken == nil {
+		return "N/A-None"
+	}
+	switch p.BaseToken.(type) {
+	case xml.Token:
+		return "XML"
+	case ast.Node:
+		return "MKDN"
+	case html.Node:
+		return "HTML"
+	}
+	panic("FIXME: GToken.BaseTokenType unrecognized")
+}
+
+
 // Echo implements Markupper.
 func (T GToken) Echo() string {
+	println("GNAME", T.GName.Echo())
 	// var s string
-	switch T.GTagTokType {
+	switch T.TTType {
 
 	case "SE":
-		return "<" + T.GName.Echo() + T.GAttList.Echo() + ">"
+		return "<" + T.GName.Echo() + T.GAtts.Echo() + ">"
 
 	case "EE":
 		return "</" + T.GName.Echo() + ">"
 
 	case "SC":
 		// panic("gparse.echo.L61.SC!")
-		logerr.Println("Bogus token <SC>")
+		println("Bogus token <SC>")
 		return "ERR!"
 
 	case "CD":
@@ -85,7 +106,7 @@ func (T GToken) EchoTo(w io.Writer) {
 
 // String implements Markupper.
 func (T GToken) String() string {
-	return ("<!--" + T.GTagTokType.LongForm() + "-->  " + T.Echo())
+	return ("<!--" + T.TTType.LongForm() + "-->  " + T.Echo())
 }
 
 // String implements Markupper.

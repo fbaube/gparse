@@ -4,13 +4,14 @@ import (
 	"encoding/xml"
 	"fmt"
 	// "errors"
-	"io/ioutil"
+	// "io/ioutil"
 	"path"
 	FP "path/filepath"
 	S "strings"
 
 	FU "github.com/fbaube/fileutils"
 	SU "github.com/fbaube/stringutils"
+	"github.com/fbaube/glog"
 	"github.com/pkg/errors"
 )
 
@@ -97,40 +98,41 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	if fpath == "" {
 		return nil, nil
 	}
-	bb, e := ioutil.ReadFile(fpath)
-	if e != nil {
-		println("==> Can't read catalog file<", fpath, ">, reason:", e.Error())
-		return nil, errors.Wrapf(e, "gparse.NewXmlCatalog.ReadFile<%s>", fpath)
+	var CP *FU.CheckedPath
+	// bb, e := ioutil.ReadFile(fpath)
+	CP = FU.NewCheckedPath(fpath)
+	if CP.GetError() != nil {
+		println("==> Can't read catalog file:", fpath, ", reason:", CP.Error())
+		return nil, errors.Wrapf(CP.GetError(), "gparse.NewXmlCatalog.ReadFile<%s>", fpath)
 	}
 
 	// ==============================
 
-	// gtokzn, e := GTokenizeXmlBuffer(theContent)
 	var xtokens []xml.Token
-	xtokens, e = XmlTokenizeBuffer(string(bb))
+	var e error
+	xtokens, e = XmlTokenizeBuffer(CP.Raw)
 	if e != nil {
 		return nil, errors.Wrap(e, "XmlTokenizeBuffer")
 	}
-	// G-Tokenize
 	var gtokzn GTokenization
-	gtokzn, e = MakeFromXmlTokens(xtokens)
+	gtokzn, e = GTokznFromXmlTokens(xtokens)
 	if e != nil {
-		return nil, errors.Wrap(e, "gtoken.MakeFromXmlTokens")
+		return nil, errors.Wrap(e, "gtoken.NewGtokznFromXmlTokens")
 	}
-	var root *GToken
-	var entries GTokenization
-	root = gtokzn.GetFirstByTag("catalog")
-	entries = gtokzn.GetAllByTag("public")
-	if root == nil {
-		panic("No root elm in XML catalog")
+	var gktnRoot *GToken
+	var gtknEntries GTokenization
+	gktnRoot = gtokzn.GetFirstByTag("catalog")
+	gtknEntries = gtokzn.GetAllByTag("public")
+	if gktnRoot == nil {
+		panic("No <catalog> root elm")
 	}
 	pXC = new(XmlCatalog)
-	pXC.XMLName = xml.Name(root.GName)
-	pXC.Prefer = root.GetAttVal("prefer")
+	pXC.XMLName = xml.Name(gktnRoot.GName)
+	pXC.Prefer = gktnRoot.GetAttVal("prefer")
 	pXC.XmlPublicIDs = make([]XmlPublicID, 0)
 	// We do this so we can peel off the directory path
 	// pXC.FileFullName
-	for _, GT := range entries {
+	for _, GT := range gtknEntries {
 		// println("  CAT-ENTRY:", GT.Echo()) // entry.GAttList.Echo())
 		pID, e := NewXmlPublicIDfromGToken(GT)
 		// NOTE Gotta fix the filepath
@@ -148,11 +150,11 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	// ==============================
 
 	// NOTE: The following code is UGLY and needs to be FIXED.
-	pXC.AbsFilePathParts = *FU.AbsFilePath(fpath).NewAbsPathParts()
+	pXC.AbsFilePathParts = *FU.AbsFP(fpath).NewAbsPathParts()
 	fileDir := path.Dir(pXC.AbsFilePathParts.Echo())
 	println("XML catalog fileDir:", fileDir)
 	for _, entry := range pXC.XmlPublicIDs {
-		println("  Entry AbsFilePath:", entry.AbsFilePath)
+		println("  Entry's AbsFilePath:", glog.Tilded(entry.AbsFilePath.S()))
 		// entry.AbsFilePath = FU.AbsFilePath(path.Join(fileDir, entry.AbsFilePath.S()))
 		entry.AbsFilePath = FU.AbsFilePath(fileDir + FU.PathSep + string(entry.AbsFilePath))
 	}
@@ -169,21 +171,21 @@ func NewXmlPublicIDfromGToken(pT *GToken) (pID *XmlPublicID, err error) {
 	if pT == nil {
 		return nil, nil
 	}
-	// println("NEW_XmlPublicIDfromGToken:", pT.Echo())
-	// fmt.Printf("GT: %+v \n", *pT)
+	println("L.173 NEW_XmlPublicIDfromGToken:", pT.Echo())
+	fmt.Printf("L.174 GT: %+v \n", *pT)
 	NS := pT.GName.Space
 	if NS != "" && NS != NS_OASIS_XML_CATALOG {
 		panic("XML catalog entry has bad NS: " + NS)
 	}
-	// println("Space:", pT.GName.Space, "/ Local:", pT.GName.Local)
-	attPid := pT.GAttList.GetAttVal("publicId")
-	attUri := pT.GAttList.GetAttVal("uri")
+	println("L.179 Space:", pT.GName.Space, "/ Local:", pT.GName.Local)
+	attPid := pT.GAtts.GetAttVal("publicId")
+	attUri := pT.GAtts.GetAttVal("uri")
 	if attPid == "" && attUri == "" {
 		println("Empty GToken for Public ID!")
 		return nil, nil
 	}
-	// println("attPid is:", attPid)
-	// println("attUri is:", attUri)
+	println("L.186 attPid is:", attPid)
+	println("L.187 attUri is:", attUri)
 
 	// -//OASIS//DTD LIGHTWEIGHT DITA Topic//EN
 	var ss []string

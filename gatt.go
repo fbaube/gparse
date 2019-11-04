@@ -27,16 +27,16 @@ import (
 //
 type GAtt xml.Attr
 
-// GAttList is TODO? Replace with a map
-type GAttList []GAtt // Used to be []*GAtt
+// GAtts is TODO? Replace with a map?
+type GAtts []GAtt // Used to be []*GAtt
 
 // Echo implements Markupper (and inserts a leading space).
 func (A GAtt) Echo() string {
 	return " " + GName(A.Name).Echo() + "=\"" + A.Value + "\""
 }
 
-// Echo implements Markupper (and inserts a leading space).
-func (AL GAttList) Echo() string {
+// Echo implements Markupper (and inserts spaces).
+func (AL GAtts) Echo() string {
 	var s string
 	for _, A := range AL {
 		s += " " + GName(A.Name).Echo() + "=\"" + A.Value + "\""
@@ -50,7 +50,7 @@ func (A GAtt) EchoTo(w io.Writer) {
 }
 
 // EchoTo implements Markupper.
-func (AL GAttList) EchoTo(w io.Writer) {
+func (AL GAtts) EchoTo(w io.Writer) {
 	w.Write([]byte(AL.Echo()))
 }
 
@@ -60,7 +60,7 @@ func (A GAtt) String() string {
 }
 
 // String implements Markupper.
-func (AL GAttList) String() string {
+func (AL GAtts) String() string {
 	return AL.Echo()
 }
 
@@ -70,12 +70,12 @@ func (A GAtt) DumpTo(w io.Writer) {
 }
 
 // DumpTo implements Markupper.
-func (AL GAttList) DumpTo(w io.Writer) {
+func (AL GAtts) DumpTo(w io.Writer) {
 	w.Write([]byte(AL.String()))
 }
 
 // GetAttVal returns the attribute's string value, or "" if not found.
-func (p GAttList) GetAttVal(att string) string {
+func (p GAtts) GetAttVal(att string) string {
 	for _, A := range p {
 		if A.Name.Local == att {
 			return A.Value

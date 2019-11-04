@@ -8,7 +8,7 @@ package gparse
 var NS_XML = "http://www.w3.org/XML/1998/namespace"
 
 // NS_XML is the OASIS namespace for XML catalogs.
-var NS_OASIS_XML_CATALOG = "urn:oasis:names:tc:entity:xmlns:xml:catalog"
+var NS_OASIS_XML_CATALOG = "urn:oasis:names:tc:entity:xmlns:xml:catalog:"
 
 // WARNING: Go has lotsa XML namespace problems:
 // https://github.com/golang/go/issues/13400#issuecomment-162459219

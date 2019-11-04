@@ -12,7 +12,7 @@ import (
 // GName is a generic golang XML name.
 //
 // NOTE If `GName.Name` (i.e. the namespace part, not the `Local`
-// part) is non-nil, then ALWAYS include a trailing semicolon in it.
+// part) is non-nil, then ALWAYS ADD a trailing semicolon to it.
 // This *greatly* simplifies output generation.
 //
 // Structure details of `xml.Name`:
@@ -20,12 +20,21 @@ import (
 //
 type GName xml.Name
 
+func (p *GName) FixNS() {
+	if p.Space != "" && !S.HasSuffix(p.Space,":") {
+		p.Space = p.Space + ":"
+	}
+}
+
 // Echo implements Markupper.
 func (N GName) Echo() string {
 	// if N.Space == "" {
 	// 	return N.Local
 	// }
-	// Note that we assume the colon is there at the end of `N.Space`
+	// Assert colon at the end of `N.Space`
+	if N.Space != "" && !S.HasSuffix(N.Space,":") {
+		panic("Missing colon on NS")
+	}
 	return N.Space + N.Local
 }
 

@@ -1,26 +1,23 @@
 package gparse
 
-import (
-	"log"
-	"os"
-)
-
-var logerr *log.Logger
+import "fmt"
 
 // ExtraInfo is a very coarse flag for constraining output when multiple files
 // are being processed.
 var ExtraInfo bool
 
-// Ldate       // the date in the local time zone: 2009/01/23
-// Ltime       // the time in the local time zone: 01:23:23
-// Lmicrosec's // microsecond resolution: 01:23:23.123123.  assumes Ltime.
-// Llongfile   // full file name and line number: /a/b/c/d.go:23
-// Lshortfile  // basic file name and line number: d.go:23 ; overrides Llongfile
-// LUTC        // if Ldate or Ltime is set, use UTC, not local time zone
+type strattribute struct{ Name, Value string }
 
+func (SA strattribute) String() string {
+	return fmt.Sprintf("%s<%s> ", SA.Name, SA.Value)
+}
+
+/*
+var logerr *log.Logger
 func init() {
 	logerr = log.New(os.Stderr, "ERR:gtoken> ", log.Lshortfile)
 }
+*/
 
 // DTDtypeFileExtensions are for content guessing.
 var DTDtypeFileExtensions = []string{".dtd", ".mod", ".ent"}
