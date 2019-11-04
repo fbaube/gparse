@@ -1,12 +1,12 @@
 package gparse
 
-// GTagTokType describes an input token or markup element. Values are based
-// on the tokens output'd by the Golang XML decoder, with some additions.
-type GTagTokType string
+// TTType specifies the type an input token or markup tag. Values are based
+// on the tokens output'd by the stdlib `xml.Decoder`, with some additions.
+type TTType string
 
 // GTagTokTypes is CDATA, ID/REF, etc., plus a reserved/TBD entry for "enum".
 // NOTE that these strings are used in comments thruout this package.
-var GTagTokTypes = []GTagTokType{
+var TTTypes = []TTType{
 	"nilerror",
 	"SE",  // StartElement  // could be:  "<s>"
 	"EE",  // EndElement    // could be: "</s>"
@@ -28,7 +28,7 @@ var GTagTokTypes = []GTagTokType{
 	"ENUM",
 }
 
-func (TT GTagTokType) LongForm() string {
+func (TT TTType) LongForm() string {
 	switch TT {
 	case "SE":
 		return "Start-Tag"
@@ -45,5 +45,5 @@ func (TT GTagTokType) LongForm() string {
 	case "SC":
 		return "SelfClose"
 	}
-	return "GTagTokType-LongForm-ERROR"
+	return "TTType-LongForm-ERROR"
 }
