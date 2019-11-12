@@ -14,7 +14,7 @@ import (
 // walkerFuncMkdnGathertreenodes is ::
 // type ast.Walker func(n Node, entering bool) (WalkStatus, error)
 // NOTE that `ast.Node` is an interface!
-func walkerFuncMkdnGathertreenodes(n ast.Node, in bool) (ast.WalkStatus, error) {
+func walkerFuncMkdnGathertreenodes(n ast.Node, in bool, inerr error) (ast.WalkStatus, error) {
 	// var DEBUG = true
 	if in {
 		WalkLevel += 1

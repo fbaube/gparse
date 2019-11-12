@@ -3,15 +3,14 @@ package gparse
 import (
 	"encoding/xml"
 	"fmt"
-	// "errors"
-	// "io/ioutil"
 	"path"
 	FP "path/filepath"
 	S "strings"
 
 	FU "github.com/fbaube/fileutils"
 	SU "github.com/fbaube/stringutils"
-	"github.com/fbaube/glog"
+	// MU "github.com/fbaube/miscutils"
+	// "github.com/fbaube/glog"
 	"github.com/pkg/errors"
 )
 
@@ -154,7 +153,7 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	fileDir := path.Dir(pXC.AbsFilePathParts.Echo())
 	println("XML catalog fileDir:", fileDir)
 	for _, entry := range pXC.XmlPublicIDs {
-		println("  Entry's AbsFilePath:", glog.Tilded(entry.AbsFilePath.S()))
+		println("  Entry's AbsFilePath:", /* FIXME MU.Tilded */ (entry.AbsFilePath.S()))
 		// entry.AbsFilePath = FU.AbsFilePath(path.Join(fileDir, entry.AbsFilePath.S()))
 		entry.AbsFilePath = FU.AbsFilePath(fileDir + FU.PathSep + string(entry.AbsFilePath))
 	}
