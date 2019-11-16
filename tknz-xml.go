@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	S "strings"
-
-	"github.com/pkg/errors"
 )
 
 // XmlTokenizeBuffer takes a string, so we can assume that we can
@@ -48,7 +46,7 @@ func XmlTokenizeBuffer(s string) (xtokens []xml.Token, err error) {
 			break
 		}
 		if e != nil {
-			return xtokens, errors.Wrap(e, "gxml.MakeXmlTokensFromContent.tokenization")
+			return xtokens, fmt.Errorf("gxml.MakeXmlTokensFromContent.tokenization: %w", e)
 		}
 		TT = xml.CopyToken(T)
 		xtokens = append(xtokens, TT)

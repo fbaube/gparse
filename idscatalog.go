@@ -6,12 +6,8 @@ import (
 	"path"
 	FP "path/filepath"
 	S "strings"
-
 	FU "github.com/fbaube/fileutils"
 	SU "github.com/fbaube/stringutils"
-	// MU "github.com/fbaube/miscutils"
-	// "github.com/fbaube/glog"
-	"github.com/pkg/errors"
 )
 
 // XmlCatalog represents a parsed XML catalog file.
@@ -67,7 +63,7 @@ func NewXmlPublicID(s string) (*XmlPublicID, error) {
 	// {"-", "OASIS", "DTD LIGHTWEIGHT DITA Topic", "EN"}
 	// fmt.Printf("(DD) (%d) %#v \n", len(ss), ss)
 	if len(ss) != 4 || ss[0] != "-" || ss[3] != "EN" {
-		return nil, errors.New("Malformed Public ID<" + s + ">")
+		return nil, fmt.Errorf("Malformed Public ID<" + s + ">")
 	}
 	p := new(XmlPublicID)
 	p.Organization = ss[1]
@@ -102,7 +98,8 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	CP = FU.NewCheckedPath(fpath)
 	if CP.GetError() != nil {
 		println("==> Can't read catalog file:", fpath, ", reason:", CP.Error())
-		return nil, errors.Wrapf(CP.GetError(), "gparse.NewXmlCatalog.ReadFile<%s>", fpath)
+		return nil, fmt.Errorf("gparse.NewXmlCatalog.ReadFile<%s>: %w",
+			fpath, CP.GetError())
 	}
 
 	// ==============================
@@ -111,12 +108,12 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	var e error
 	xtokens, e = XmlTokenizeBuffer(CP.Raw)
 	if e != nil {
-		return nil, errors.Wrap(e, "XmlTokenizeBuffer")
+		return nil, fmt.Errorf("XmlTokenizeBuffer: %w", e)
 	}
 	var gtokzn GTokenization
 	gtokzn, e = GTokznFromXmlTokens(xtokens)
 	if e != nil {
-		return nil, errors.Wrap(e, "gtoken.NewGtokznFromXmlTokens")
+		return nil, fmt.Errorf("gtoken.NewGtokznFromXmlTokens: %w", e)
 	}
 	var gktnRoot *GToken
 	var gtknEntries GTokenization
@@ -194,7 +191,7 @@ func NewXmlPublicIDfromGToken(pT *GToken) (pID *XmlPublicID, err error) {
 	// {"-", "OASIS", "DTD LIGHTWEIGHT DITA Topic", "EN"}
 	// fmt.Printf("(DD:PIDss) (%d) %v \n", len(ss), ss)
 	if len(ss) != 4 || ss[0] != "-" || ss[3] != "EN" {
-		return nil, errors.New("Malformed Public ID<" + attPid + ">")
+		return nil, fmt.Errorf("Malformed Public ID<%s>", attPid)
 	}
 	pID = new(XmlPublicID)
 	// NOTE DANGER This is probably relative not absolute,
@@ -254,7 +251,7 @@ func (p *XmlCatalog) Validate() (retval bool) {
 		// fmt.Printf("(DD) (%d) %#v \n", len(ss), ss)
 		if len(ss) != 4 || ss[0] != "-" || ss[3] != "EN" {
 			retval = false
-			pEntry.error = errors.New("Malformed Public ID<" + s + ">")
+			pEntry.error = fmt.Errorf("Malformed Public ID: %s", s)
 			continue
 		}
 		pEntry.Organization = ss[1]

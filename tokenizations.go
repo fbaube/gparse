@@ -1,6 +1,7 @@
 package gparse
 
 import (
+  "fmt"
   "encoding/xml"
   "golang.org/x/net/html"
   "github.com/yuin/goldmark/ast"
@@ -30,7 +31,7 @@ func (hNodes HtmlTokenization) GetAllByAnyTag(ss []string) []*html.Node {
   var ret []*html.Node
   ret = make([]*html.Node, 0)
 	for _, p := range hNodes.ListNodesP {
-
+    panic(fmt.Sprintf("OOPS: %p", p))
   }
   return ret
 }
@@ -45,7 +46,7 @@ func (hT HtmlTokenization) GetAllByTag(s string) []*html.Node {
   var ret []*html.Node
 	ret = make([]*html.Node , 0)
 	for _, p := range hT.ListNodesP {
-
+    panic(fmt.Sprintf("OOPS: %p", p))
   }
   return ret
 }
@@ -60,6 +61,7 @@ func (mNodes MkdnTokenization) GetAllByTag(s string) []ast.Node {
   var ret []ast.Node
 	ret = make([]ast.Node,0)
 	for _, p := range mNodes.ListNodes {
+    panic(fmt.Sprintf("OOPS: %p", p))
   }
   return ret
 }

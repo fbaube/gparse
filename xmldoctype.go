@@ -3,9 +3,7 @@ package gparse
 import (
 	"fmt"
 	S "strings"
-
 	SU "github.com/fbaube/stringutils"
-	"github.com/pkg/errors"
 )
 
 // This file contains LwDITA-specific stuff, but it is hard-coded and
@@ -108,7 +106,7 @@ func NewXmlDoctypeInclMtype(s string) (*XmlDoctype, error) {
 	}
 	pDT.Availability, s = SU.SplitOffFirstWord(s)
 	if pDT.Availability != "PUBLIC" && pDT.Availability != "SYSTEM" {
-		return nil, errors.New("Bad DOCTYPE availability<" +
+		return nil, fmt.Errorf("Bad DOCTYPE availability<" +
 			pDT.Availability + "> (neither PUBLIC nor SYSTEM)")
 	}
 	// "-//OASIS//DTD LIGHTWEIGHT DITA Topic//EN" "lw-topic.dtd"
@@ -137,7 +135,7 @@ func NewXmlDoctypeInclMtype(s string) (*XmlDoctype, error) {
 		// "PUBLIC"
 		ppid, e := NewXmlPublicID(qtd1)
 		if e != nil {
-			return nil, errors.Wrapf(e, "gtoken.doctype.newInclM.NewXmlPublicID<%s>", qtd1)
+			return nil, fmt.Errorf("gtoken.doctype.newInclM.NewXmlPublicID<%s>: %w", qtd1, e)
 		}
 		pDT.XmlPublicID = *ppid
 		pDT.SystemID = SystemID(qtd2)

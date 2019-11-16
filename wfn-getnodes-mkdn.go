@@ -1,20 +1,13 @@
 package gparse
 
 import (
-	// "fmt"
-	// S "strings"
-
-	// SU "github.com/fbaube/stringutils"
-	// "github.com/g3n/engine/renderer"
-
-	// "github.com/sanity-io/litter"
 	"github.com/yuin/goldmark/ast"
 )
 
 // walkerFuncMkdnGathertreenodes is ::
 // type ast.Walker func(n Node, entering bool) (WalkStatus, error)
 // NOTE that `ast.Node` is an interface!
-func walkerFuncMkdnGathertreenodes(n ast.Node, in bool, inerr error) (ast.WalkStatus, error) {
+func walkerFuncMkdnGathertreenodes(n ast.Node, in bool /*,inerr error*/) (ast.WalkStatus, error) {
 	// var DEBUG = true
 	if in {
 		WalkLevel += 1
