@@ -1,19 +1,30 @@
-// Package gparse processes Golang markup language tokens, primarily
-// supporting the three formats of LwDITA: XDITA (XML), HDITA (HTML5),
-// MDITA (Markdown-XP).
+// Package gparse processes markup language tokens, primarily supporting the
+// three formats of LwDITA: XDITA (XML), HDITA (HTML5), MDITA (Markdown-XP).
 //
-// This package uses the BlackFriday (v2) Markdown parser for two reasons:
-// v2 has been updated to produce ASTs, and v1 is used by Hugo. Conformance
-// with LwDITA MDITA and MDITA-XP is not guaranteed - not at all.
+// *Note: This package's inline documentation uses Markdown, so for best
+// results, use (godoc2mcd)[], like so: `godoc2md `.*
 //
-// Golang comments in this directory use Markdown, so use `godoc2md` on'em.
+// *Terminology: Instead of the term **parse tree**, this package uses
+// the term **CST** (Concrete Syntax Tree), to contrast & compare to
+// AST (Abstract Syntax Tree). See for example this introduction
+// (on Wikipedia)[https://en.wikipedia.org/wiki/Abstract_syntax_tree].*
+//
+// This package uses (`yuin/goldmark`)[https://github.com/yuin/goldmark]
+// as its Markdown parser for several reasons but mainly because work on
+// v2 of the (`BlackFriday`)[https://github.com/russross/blackfriday]
+// Markdown parser seems to have stalled. Also because goldmark already
+// creates a CST (which goldmark calls an AST) whereas Blackfriday does
+// not yet. Also goldmark is Commonmark-compliant, but this does not
+// guarantee compliance with LwDITA MDITA and MDITA-XP.
 //
 // ### Technical Approach
 //
-// This package makes its own versions of Golang XML structures so that they
-// get sensible new names and handy methods, while retaining type-cast-ability.
+// This package makes its own new types from Go stdlib XML structures, so that
+// they get sensible new names and handy methods while retaining an ability to
+// be type-cast back to the Golang stdlib equivalents.
 //
-// Short names (Att for *Attribute*, Elm for *Element*) keep code readable.
+// Short names (Att for *Attribute*, Elm for *Element*, Doc for *Document*)
+// keep code readable.
 //
 // This code *should* work with XML namespaces, but this is completely untested.
 //

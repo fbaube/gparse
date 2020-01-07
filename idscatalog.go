@@ -93,9 +93,8 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	if fpath == "" {
 		return nil, nil
 	}
-	var CP *FU.CheckedPath
-	// bb, e := ioutil.ReadFile(fpath)
-	CP = FU.NewCheckedPath(fpath)
+	var CP *FU.CheckedContent
+	CP = FU.NewCheckedContentFromPath(fpath)
 	if CP.GetError() != nil {
 		println("==> Can't read catalog file:", fpath, ", reason:", CP.Error())
 		return nil, fmt.Errorf("gparse.NewXmlCatalog.ReadFile<%s>: %w",
@@ -225,9 +224,9 @@ func (p *XmlCatalog) Validate() (retval bool) {
 		var abspath FU.AbsFilePath
 		abspath = p.AbsFilePathParts.DirPath.Append(string(pEntry.SystemID))
 		// pIF, e := FU.NewInputFile(FU.RelFilePath(abspath)) // downcast
-		pIF := FU.NewCheckedPath(abspath.S())
+		pIF := FU.NewCheckedContentFromPath(abspath.S())
 		// (&FU.CheckedPath{RelFilePath: abspath.AsRelFP()}).Resolve() //.Check()
-		if pIF.PathType() != "FILE" { // e != nil {
+		if !pIF.IsOkayFile() { // pIF.PathType() != "FILE" { // e != nil {
 			fmt.Printf("==> Catalog<%s>: Bad System ID / URI <%s> for Public ID <%s> \n",
 				p.AbsFilePathParts.String(), pEntry.SystemID, pEntry.PublicID)
 			retval = false
