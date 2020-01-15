@@ -68,7 +68,7 @@ func (p *GToken) BaseTokenType() string {
 
 // Echo implements Markupper.
 func (T GToken) Echo() string {
-	println("GNAME", T.GName.Echo())
+	// println("GNAME", T.GName.Echo())
 	// var s string
 	switch T.TTType {
 
