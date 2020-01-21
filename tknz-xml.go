@@ -7,10 +7,10 @@ import (
 	S "strings"
 )
 
-// XmlTokenizeBuffer takes a string, so we can assume that we can
+// NewXmlTokenization takes a string, so we can assume that we can
 // discard it after use cos the caller has another copy of it.
 // To be safe, it copies every token using `xml.CopyToken(T)`.
-func XmlTokenizeBuffer(s string) (xtokens []xml.Token, err error) {
+func NewXmlTokenization(s string) (xtokens []xml.Token, err error) {
 	var e error
 	var T, TT xml.Token
 	xtokens = make([]xml.Token, 0, 100)

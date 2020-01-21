@@ -34,19 +34,22 @@ type GToken struct {
 	// GTagTokType enumerates the types of struct `GToken` and also the types of
 	// struct `GTag`, which are a strict superset. Therefore the two structs use
 	// a shared "type" enumeration. <br/>
-	// NOTE that "EE" (`EndElement`) is OK for a `GToken.Type` but (probably)
-	// not for a `GTag.Type`, cos the existence of a matching `EndElement` for
-	// every `StartElement` should be assumed (but need not actually be present)
-	// in a valid `GTree`.
+	// NOTE that "EE" (`EndElement`) is maybe (but probably not) OK for a
+	// `GToken.Type` but certainly not for a `GTag.Type`, cos the existence
+	// of a matching `EndElement` for every `StartElement` should be assumed
+	// (but need not actually be present) in a valid `GTree`.
 	TTType
 	// GName is for XML "SE" & "EE" *only* // GElmName? GTagName?
 	GName
-	// GAtts is for XML "SE" *only*, and HTML, and maybe MKDN
+	// GAtts is for XML "SE" *only*, and HTML, and (with some finagling) MKDN
 	GAtts
 	// Keyword is for XML ProcInst "PI" & Directive "Dir", *only*
 	Keyword string
 	// Otherwords is for all *except* "SE" and "EE"
 	Otherwords string
+
+	NodeKind, DitaTag, HtmlTag, NodeText string
+	NodeNumeric int
 }
 
 // BaseTokenType returns `XML`, `MKDN`, `HTML`, or future stuff TBD.
@@ -65,10 +68,9 @@ func (p *GToken) BaseTokenType() string {
 	panic("FIXME: GToken.BaseTokenType unrecognized")
 }
 
-
 // Echo implements Markupper.
 func (T GToken) Echo() string {
-	println("GNAME", T.GName.Echo())
+	// println("GNAME", T.GName.Echo())
 	// var s string
 	switch T.TTType {
 

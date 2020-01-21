@@ -9,8 +9,8 @@ import (
 	SU "github.com/fbaube/stringutils"
 )
 
-// GTokznFromXmlTokens is TBS.
-func GTokznFromXmlTokens(xtokens []xml.Token) (gtokens GTokenization, err error) {
+// DoGTokens_xml is TBS.
+func DoGTokens_xml(xtokens []xml.Token) (gtokens GTokenization, err error) {
 	// NOTE Returns (`nil,nil`) if the token is valid but useless, and
 	// can be skipped, such as an `xml.CharData` that is all whitespace.
 	var XT xml.Token
