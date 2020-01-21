@@ -105,12 +105,12 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 
 	var xtokens []xml.Token
 	var e error
-	xtokens, e = XmlTokenizeBuffer(CP.Raw)
+	xtokens, e = NewXmlTokenization(CP.Raw)
 	if e != nil {
 		return nil, fmt.Errorf("XmlTokenizeBuffer: %w", e)
 	}
 	var gtokzn GTokenization
-	gtokzn, e = GTokznFromXmlTokens(xtokens)
+	gtokzn, e = DoGTokens_xml(xtokens)
 	if e != nil {
 		return nil, fmt.Errorf("gtoken.NewGtokznFromXmlTokens: %w", e)
 	}
