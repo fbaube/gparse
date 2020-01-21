@@ -8,6 +8,7 @@ import (
 	S "strings"
 	FU "github.com/fbaube/fileutils"
 	SU "github.com/fbaube/stringutils"
+	PU "github.com/fbaube/parseutils"
 )
 
 // XmlCatalog represents a parsed XML catalog file.
@@ -103,21 +104,21 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 
 	// ==============================
 
-	var xtokens []xml.Token
+	var pCPR *PU.ConcreteParseResults_xml
 	var e error
-	xtokens, e = NewXmlTokenization(CP.Raw)
+	pCPR, e = PU.GetParseResults_xml(CP.Raw)
 	if e != nil {
-		return nil, fmt.Errorf("XmlTokenizeBuffer: %w", e)
+		return nil, fmt.Errorf("gparse.xml.parseResults: %w", e)
 	}
-	var gtokzn GTokenization
-	gtokzn, e = DoGTokens_xml(xtokens)
+	var GTs []*GToken
+	GTs, e = DoGTokens_xml(pCPR)
 	if e != nil {
-		return nil, fmt.Errorf("gtoken.NewGtokznFromXmlTokens: %w", e)
+		return nil, fmt.Errorf("gparse.xml.GTokens: %w", e)
 	}
 	var gktnRoot *GToken
-	var gtknEntries GTokenization
-	gktnRoot = gtokzn.GetFirstByTag("catalog")
-	gtknEntries = gtokzn.GetAllByTag("public")
+	var gtknEntries []*GToken
+	gktnRoot    = GetFirstByTag(GTs, "catalog")
+	gtknEntries = GetAllByTag(GTs, "public")
 	if gktnRoot == nil {
 		panic("No <catalog> root elm")
 	}
