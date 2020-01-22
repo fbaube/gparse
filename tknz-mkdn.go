@@ -1,6 +1,6 @@
 package gparse
 
-var MNdTypes = []string{"nil", "Blk", "Inl", "Doc"}
+var NodeTypes_mkdn = []string{"nil", "Blk", "Inl", "Doc"}
 
 // var theSRC []byte // string
 // var NdKdNms []string

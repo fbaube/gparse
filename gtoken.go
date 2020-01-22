@@ -31,6 +31,7 @@ type GToken struct {
 	// later processing, if (for example) it is a CDATA that has only whitespace.
 	BaseToken interface{}
 	Depth int
+	IsBlock, IsInline bool 
 	// GTagTokType enumerates the types of struct `GToken` and also the types of
 	// struct `GTag`, which are a strict superset. Therefore the two structs use
 	// a shared "type" enumeration. <br/>

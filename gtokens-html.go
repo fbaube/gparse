@@ -2,7 +2,7 @@ package gparse
 
 import (
 	"fmt"
-	// S "strings"
+	S "strings"
 	PU "github.com/fbaube/parseutils"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -40,12 +40,26 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 		p.Depth = DL[i]
 		NT = n.Type
 		datom = n.DataAtom
-		fmt.Printf("html.GT: %d %s \n", NT, datom.String())
-		fmt.Printf("html.Node: NT<%s> datom<%s> NS<%s> Data<%s> \n",
-			PU.NTstring(NT), datom.String(), n.Namespace, n.Data)
+		/*
+		fmt.Printf("html: NT<%d/%s> datom<%s> Data<%s> NS<%s> \n",
+			S.TrimSpace(datom.String()), S.TrimSpace(n.Data), n.Namespace)
 			// and Attr []Attribute
+		*/
+		s := fmt.Sprintf("L%d NT<%d/%s> ", p.Depth, NT, PU.NTstring(NT))
+		if S.TrimSpace(datom.String()) == S.TrimSpace(n.Data) {
+			s += fmt.Sprintf("datom+Data<%s> ", datom.String())
+		} else if S.TrimSpace(datom.String()) == "" {
+			s += fmt.Sprintf("Data<%s> ", S.TrimSpace(n.Data))
+		} else {
+			s += fmt.Sprintf("datom<%s> Data<%s> ",
+				S.TrimSpace(datom.String()), S.TrimSpace(n.Data))
 		}
-		return gTokens, nil
+		if n.Namespace != "" {
+			s += fmt.Sprintf("NS<%s> ", n.Namespace)
+		}
+		println(s)
+	}
+	return gTokens, nil
 }
 
 		/*

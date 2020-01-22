@@ -35,7 +35,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 	var gTokens = make([]*GToken,0)
 	var NT ast.NodeType // 1..3
 	var NK ast.NodeKind
-	var NKi int
+	// var NKi int
 
 	NL = pCPR.NodeList
 	DL = pCPR.NodeDepths
@@ -57,14 +57,35 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 		p.Depth = DL[i]
 		NT = n.Type()
 		NK = n.Kind()
-		NKi = int(NK)
-		fmt.Printf("mkdn.GT: %d %d %d \n", NT, NK, NKi)
-		if i == 0 {
-			// Has to be Document token
-			if NK != ast.KindDocument {
-				panic("NOT DOC")
+		var isText bool
+		isText = (NT == ast.TypeInline && NK == ast.KindText)
+		if isText {
+			n2 := n.(*ast.Text)
+			segment := n2.Segment
+			if "" == string(pCPR.Reader.Value(segment)) {
+				continue
 			}
-			// println("=DOC=DOC=:", litter.Sdump(MT))
+		}
+		// NKi = int(NK)
+		// fmt.Printf("mkdn.GT: NT<%d:%s> NK<%d> \n", NT, NodeTypes_mkdn[NT], NK)
+		fmt.Printf("L%d %s> ", p.Depth, NodeTypes_mkdn[NT])
+		if !isText {
+			fmt.Printf("%s> ", NK.String())
+		}
+		if (NK == ast.KindDocument) != (NT == ast.TypeDocument) {
+			panic("KIND/TYPE/DOC")
+		}
+		if i == 0 && NK != ast.KindDocument {
+				panic("ROOT IS NOT DOC")
+			}
+		if i > 0 && NK == ast.KindDocument {
+				panic("NON-ROOT IS DOC")
+			}
+		switch NT {
+		case ast.TypeBlock:
+			p.IsBlock = true
+		case ast.TypeInline:
+			p.IsInline = true
 		}
 		/*
 		Fields:
@@ -88,7 +109,8 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "xref"
 					p.HtmlTag = "a@href"
 					n2 := n.(*ast.AutoLink)
-					fmt.Printf("AutoLink: %+v \n", *n2)
+					fmt.Printf("AutoLink: protocol<%s> ALtype <%d> \n",
+						string(n2.Protocol), n2.AutoLinkType)
 					// type AutoLink struct {
 					//   BaseInline
 					//   Type is a type of this autolink.
@@ -113,7 +135,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "?blockquote"
 					p.HtmlTag = "blockquote"
 					n2 := n.(*ast.Blockquote)
-					fmt.Printf("Blockquote: %+v \n", *n2)
+					fmt.Printf("Blockquote: \n  %+v \n", *n2)
 					// type Blockquote struct {
 					//   BaseBlock
 					// }
@@ -123,7 +145,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "?pre+?code"
 					p.HtmlTag = "pre+code"
 					n2 := n.(*ast.CodeBlock)
-					fmt.Printf("CodeBlock: %+v \n", *n2)
+					fmt.Printf("CodeBlock: \n  %+v \n", *n2)
 					// type CodeBlock struct {
 					//   BaseBlock
 					// }
@@ -155,6 +177,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.NodeKind = "KindDocument"
 					p.DitaTag = "topic"
 					p.HtmlTag = "html"
+					println("(doc)")
 				case ast.KindEmphasis:
 					p.NodeKind = "KindEmphasis"
 					// iLevel 2 | iLevel 1
@@ -162,7 +185,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.HtmlTag = "strong|em"
 					n2 := n.(*ast.Emphasis)
 					p.NodeNumeric = n2.Level
-					fmt.Printf("Emphasis: %+v \n", *n2)
+					fmt.Printf("Emphasis: \n  %+v \n", *n2)
 					// type Emphasis struct {
 					//   BaseInline
 					//   Level is a level of the emphasis.
@@ -181,7 +204,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "?code"
 					p.HtmlTag = "code"
 					n2 := n.(*ast.FencedCodeBlock)
-					fmt.Printf("FencedCodeBlock: %+v \n", *n2)
+					fmt.Printf("FencedCodeBlock: \n  %+v \n", *n2)
 					// type FencedCodeBlock struct {
 					//   BaseBlock
 					//   Info returns a info text of this fenced code block.
@@ -198,7 +221,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "?htmlblock"
 					p.HtmlTag = "?htmlblock"
 					n2 := n.(*ast.HTMLBlock)
-					fmt.Printf("HTMLBlock: %+v \n", *n2)
+					fmt.Printf("HTMLBlock: \n  %+v \n", *n2)
 					// type HTMLBlock struct {
 					//   BaseBlock
 					//   Type is a type of this html block.
@@ -220,7 +243,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.HtmlTag = "h%d"
 					n2 := n.(*ast.Heading)
 					p.NodeNumeric = n2.Level
-					fmt.Printf("Heading: %+v \n", *n2)
+					fmt.Printf("Heading: <%d> \n", n2.Level)
 					// type Heading struct {
 					//   BaseBlock
 					//   Level returns a level of this heading.
@@ -234,7 +257,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "image"
 					p.HtmlTag = "img"
 					n2 := n.(*ast.Image)
-					fmt.Printf("Image: %+v \n", *n2)
+					fmt.Printf("Image: \n  %+v \n", *n2)
 					// type Image struct {
 					//   baseLink
 					// }
@@ -259,7 +282,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "xref"
 					p.HtmlTag = "a@href"
 					n2 := n.(*ast.Link)
-					fmt.Printf("Link: %+v \n", *n2)
+					fmt.Printf("Link: \n  %+v \n", *n2)
 					// type Link struct {
 					//   baseLink
 					// }
@@ -284,7 +307,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 						p.DitaTag = "ul"
 						p.HtmlTag = "ul"
 					}
-					fmt.Printf("List: %+v \n", *n2)
+					fmt.Printf("List: \n  %+v \n", *n2)
 					// type List struct {
 					//   BaseBlock
 					//   Marker is a markar character like '-', '+', ')' and '.'.
@@ -311,7 +334,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					n2 := n.(*ast.ListItem)
 					p.DitaTag = "li"
 					p.HtmlTag = "li"
-					fmt.Printf("ListItem: %+v \n", *n2)
+					fmt.Printf("ListItem: \n  %+v \n", *n2)
 					// type ListItem struct {
 					//   BaseBlock
 					//   Offset is an offset potision of this item.
@@ -326,6 +349,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.NodeKind = "KindParagraph"
 					p.DitaTag = "p"
 					p.HtmlTag = "p"
+					println("(para)")
 					// // n2 := n.(*ast.Paragraph)
 					// // sDump = litter.Sdump(*n2)
 					// type Paragraph struct {
@@ -337,7 +361,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "?rawhtml"
 					p.HtmlTag = "?rawhtml"
 					n2 := n.(*ast.RawHTML)
-					fmt.Printf("RawHTML: %+v \n", *n2)
+					fmt.Printf("RawHTML: \n  %+v \n", *n2)
 					// type RawHTML struct {
 					//   BaseInline
 					//   Segments *textm.Segments
@@ -354,7 +378,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					n2 := n.(*ast.Text)
 					p.DitaTag = "?text"
 					p.HtmlTag = "?text"
-					fmt.Printf("Text: %+v \n", *n2)
+					// fmt.Printf("Text: \n  %+v \n", *n2)
 					// // sDump = litter.Sdump(*n2)
 					// type Text struct {
 					//   BaseInline
@@ -365,6 +389,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					segment := n2.Segment
 					// p.NodeText = fmt.Sprintf("KindText:\n | %s", string(TheReader.Value(segment)))
 					p.NodeText = /* fmt.Sprintf("KindText:\n | %s", */ string(pCPR.Reader.Value(segment)) //)
+					fmt.Printf("Text: %s \n", p.NodeText)
 					/*
 						if n.IsRaw() {
 							r.Writer.RawWrite(w, segment.Value(TheSource))
@@ -408,6 +433,6 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "UNK"
 					p.HtmlTag = "UNK"
 				}
-		}
+			}
 	return gTokens, nil
 }
