@@ -40,19 +40,29 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 		p.Depth = DL[i]
 		NT = n.Type
 		datom = n.DataAtom
+		ds := S.TrimSpace(datom.String())
+		Ds := S.TrimSpace(n.Data)
+
+		if ds == "" && NT != html.DocumentNode {
+			continue
+		}
 		/*
 		fmt.Printf("html: NT<%d/%s> datom<%s> Data<%s> NS<%s> \n",
 			S.TrimSpace(datom.String()), S.TrimSpace(n.Data), n.Namespace)
 			// and Attr []Attribute
 		*/
-		s := fmt.Sprintf("L%d NT<%d/%s> ", p.Depth, NT, PU.NTstring(NT))
-		if S.TrimSpace(datom.String()) == S.TrimSpace(n.Data) {
-			s += fmt.Sprintf("datom+Data<%s> ", datom.String())
-		} else if S.TrimSpace(datom.String()) == "" {
-			s += fmt.Sprintf("Data<%s> ", S.TrimSpace(n.Data))
+		s := fmt.Sprintf("L%d%s (%d:%s)  ",
+			p.Depth, S.Repeat("  ", p.Depth-1), NT, PU.NTstring(NT))
+		if ds == Ds {
+			if ds == "" && NT != html.DocumentNode {
+				s += "SKIP "
+				} else {
+					s += fmt.Sprintf("dd<%s> ", ds)
+				}
+		} else if ds == "" {
+			s += fmt.Sprintf("Data<%s> ", Ds)
 		} else {
-			s += fmt.Sprintf("datom<%s> Data<%s> ",
-				S.TrimSpace(datom.String()), S.TrimSpace(n.Data))
+			s += fmt.Sprintf("datom<%s> Data<%s> ",	ds, Ds)
 		}
 		if n.Namespace != "" {
 			s += fmt.Sprintf("NS<%s> ", n.Namespace)
