@@ -54,7 +54,7 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 		s := fmt.Sprintf("L%d%s (%d:%s)  ",
 			p.Depth, S.Repeat("  ", p.Depth-1), NT, PU.NTstring(NT))
 		if ds == Ds {
-			if ds == "" && NT != html.DocumentNode {
+			if ds == "" && NT != html.DocumentNode { // Now handled above! 
 				s += "SKIP "
 				} else {
 					s += fmt.Sprintf("dd<%s> ", ds)

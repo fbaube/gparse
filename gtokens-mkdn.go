@@ -2,6 +2,7 @@ package gparse
 
 import (
 	"fmt"
+	S "strings"
 	PU "github.com/fbaube/parseutils"
 	"github.com/yuin/goldmark/ast"
 )
@@ -51,24 +52,29 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 			p.DitaTag, p.HtmlTag, p.NodeText)
 	}
 	*/
+	var isText, wasText, canSkip, canMerge bool
+
 	for i, n := range NL {
 		p = new(GToken)
 		p.BaseToken = n
 		p.Depth = DL[i]
 		NT = n.Type()
 		NK = n.Kind()
-		var isText bool
+ 		wasText = isText
+		canSkip, canMerge = false, false
 		isText = (NT == ast.TypeInline && NK == ast.KindText)
 		if isText {
 			n2 := n.(*ast.Text)
 			segment := n2.Segment
 			if "" == string(pCPR.Reader.Value(segment)) {
-				continue
+				canSkip = true
+			} else {
+				canMerge = wasText
 			}
 		}
 		// NKi = int(NK)
 		// fmt.Printf("mkdn.GT: NT<%d:%s> NK<%d> \n", NT, NodeTypes_mkdn[NT], NK)
-		fmt.Printf("L%d %s> ", p.Depth, NodeTypes_mkdn[NT])
+		fmt.Printf("L%d%s (%s) ", p.Depth, S.Repeat("  ", p.Depth-1), NodeTypes_mkdn[NT])
 		if !isText {
 			fmt.Printf("%s> ", NK.String())
 		}
@@ -387,6 +393,11 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					//   flags uint8
 					// }
 					segment := n2.Segment
+					if canSkip {
+						fmt.Printf("(canSkip?) ")
+					} else if canMerge {
+						fmt.Printf("(canMerge?) ")
+					}
 					// p.NodeText = fmt.Sprintf("KindText:\n | %s", string(TheReader.Value(segment)))
 					p.NodeText = /* fmt.Sprintf("KindText:\n | %s", */ string(pCPR.Reader.Value(segment)) //)
 					fmt.Printf("Text: %s \n", p.NodeText)
