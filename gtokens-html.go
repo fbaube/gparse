@@ -16,6 +16,7 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 	var DL []int
 	var p *GToken
 	var gTokens = make([]*GToken,0)
+	var gDepths = make([]int, 0)
 	var NT html.NodeType // 1..3
 	var datom atom.Atom
 	// var NKi int
@@ -40,10 +41,13 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 		p.Depth = DL[i]
 		NT = n.Type
 		datom = n.DataAtom
-		ds := S.TrimSpace(datom.String())
-		Ds := S.TrimSpace(n.Data)
+		datomS := S.TrimSpace(datom.String())
+		dataS  := S.TrimSpace(n.Data)
 
-		if ds == "" && NT != html.DocumentNode {
+		if dataS == "" && NT != html.DocumentNode {
+			// println("HTML continued")
+			gTokens = append(gTokens, nil)
+			gDepths = append(gDepths, p.Depth)
 			continue
 		}
 		/*
@@ -53,54 +57,45 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 		*/
 		s := fmt.Sprintf("L%d%s (%d:%s)  ",
 			p.Depth, S.Repeat("  ", p.Depth-1), NT, PU.NTstring(NT))
-		if ds == Ds {
-			if ds == "" && NT != html.DocumentNode { // Now handled above! 
+		if datomS == dataS {
+			if datomS == "" && NT != html.DocumentNode { // Now handled above!
 				s += "SKIP "
+				} else if datomS != "" {
+					s += fmt.Sprintf("dat:<%s> ", datomS)
 				} else {
-					s += fmt.Sprintf("dd<%s> ", ds)
+					s += "(nil data) "
 				}
-		} else if ds == "" {
-			s += fmt.Sprintf("Data<%s> ", Ds)
+		} else if datomS == "" {
+			if NT == html.CommentNode && S.HasPrefix(dataS, "?xml ") {
+				s += "XmlProlog: " + dataS
+			} else {
+				s += fmt.Sprintf("DataFld<%s> ", dataS)
+			}
 		} else {
-			s += fmt.Sprintf("datom<%s> Data<%s> ",	ds, Ds)
+			s += fmt.Sprintf("DatomFld<%s> Data<%s> ",	datomS, dataS)
 		}
 		if n.Namespace != "" {
 			s += fmt.Sprintf("NS<%s> ", n.Namespace)
 		}
-		println(s)
-	}
-	return gTokens, nil
-}
-
-		/*
-		if i == 0 {
-			// Has to be Document token
-			if NK != ast.KindDocument {
-				panic("NOT DOC")
-			}
-			// println("=DOC=DOC=:", litter.Sdump(MT))
+		if n.Attr != nil && len(n.Attr) > 0 && NT != html.DoctypeNode {
+			s += fmt.Sprintf("Attrs: %+v", n.Attr)
 		}
-		* /
-		switch NT { // ast.NodeKind
-			/*
-			    Type      NodeType
-							ErrorNode NodeType = iota
-    					TextNode
-    					DocumentNode
-    					ElementNode
-    					CommentNode
-    					DoctypeNode
-			    DataAtom  atom.Atom
-							integer codes (a.k.a. atoms) for a fixed set of common HTML
-							strings: tag names and attribute keys like "p" and "id".
-			    Data      string
-			    Namespace string
-			    Attr      []Attribute
-			* /
+		println(s)
+		switch NT {
+		case html.ErrorNode:
+			p.TTType = "Err"
+			println("HTML ERR node")
+		case html.TextNode:
+			p.TTType = "CD"
+			p.Otherwords = dataS
+		case html.DocumentNode:
+			p.TTType = "Doc"
 		case html.ElementNode:
-						// A StartElement has a Name (GName) and Attributes (GAtt's)
-						p.TTType = "SE"
-						// type xml.StartElement struct { Name Name ; Attr []Attr }
+			p.TTType = "SE"
+			// A StartElement has an xml.Name (same as GName) and Attributes (GAtt's):
+			// type xml.StartElement struct { Name Name ; Attr []Attr }
+			p.GName.Local = datomS
+			/*
 						xTag := xml.CopyToken(xt).(xml.StartElement)
 						p.GName = GName(xTag.Name)
 						p.GName.FixNS()
@@ -122,6 +117,45 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 						// fmt.Printf("<!--Start-Tag--> %s \n", outGT.Echo())
 						gTokens = append(gTokens, p)
 						continue
+						*/
+
+		case html.CommentNode:
+			p.TTType = "Cmt"
+		case html.DoctypeNode:
+			p.TTType = "Dir"
+			for _, a := range n.Attr {
+				// fmt.Printf("\t Attr: %+v \n", a)
+				fmt.Printf("\t NS<%s> Key<%s> Val: %s \n", a.Namespace, a.Key, a.Val)
+			}
+		// case html.RawNode:
+			// println("HTML RAW node")
+		}
+		gTokens = append(gTokens, p)
+		gDepths = append(gDepths, p.Depth)
+	}
+	// Only for XML! Not for HTML.
+	// pCPR.NodeDepths = gDepths
+
+	return gTokens, nil
+}
+
+		/*
+		switch NT { // ast.NodeKind
+			/*
+			    Type      NodeType
+							ErrorNode NodeType = iota
+    					TextNode
+    					DocumentNode
+    					ElementNode
+    					CommentNode
+    					DoctypeNode
+			    DataAtom  atom.Atom
+							integer codes (a.k.a. atoms) for a fixed set of common HTML
+							strings: tag names and attribute keys like "p" and "id".
+			    Data      string
+			    Namespace string
+			    Attr      []Attribute
+			* /
 
 /*
 

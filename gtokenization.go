@@ -30,6 +30,7 @@ func DeleteNils(inGTzn []*GToken) (outGTzn []*GToken) {
 // the input file, except perhaps for the treatment of all-whitespace CDATA.
 func DumpTo(GTzn []*GToken, w io.Writer) {
 	if nil == GTzn || nil == w {
+		println("gparse.gtokzn.DumpTo: NIL ?!")
 		return
 	}
 	// GTzn = GTzn.DeleteNils()

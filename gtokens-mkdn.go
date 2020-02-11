@@ -444,6 +444,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.DitaTag = "UNK"
 					p.HtmlTag = "UNK"
 				}
+			gTokens = append(gTokens, p)
 			}
 	return gTokens, nil
 }
