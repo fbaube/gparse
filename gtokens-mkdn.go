@@ -34,6 +34,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 	var DL []int
 	var p *GToken
 	var gTokens = make([]*GToken,0)
+	var gDepths = make([]int, 0)
 	var NT ast.NodeType // 1..3
 	var NK ast.NodeKind
 	// var NKi int
@@ -74,7 +75,8 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 		}
 		// NKi = int(NK)
 		// fmt.Printf("mkdn.GT: NT<%d:%s> NK<%d> \n", NT, NodeTypes_mkdn[NT], NK)
-		fmt.Printf("L%d%s (%s) ", p.Depth, S.Repeat("  ", p.Depth-1), NodeTypes_mkdn[NT])
+		fmt.Printf("[%02d:L%d]%s (%s) ",
+			i, p.Depth, S.Repeat("  ", p.Depth-1), NodeTypes_mkdn[NT])
 		if !isText {
 			fmt.Printf("%s> ", NK.String())
 		}
@@ -183,6 +185,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.NodeKind = "KindDocument"
 					p.DitaTag = "topic"
 					p.HtmlTag = "html"
+					p.TTType = "Doc"
 					println("(doc)")
 				case ast.KindEmphasis:
 					p.NodeKind = "KindEmphasis"
@@ -249,6 +252,8 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.HtmlTag = "h%d"
 					n2 := n.(*ast.Heading)
 					p.NodeNumeric = n2.Level
+					p.TTType = "SE"
+					p.GName.Local = fmt.Sprintf("h%d", n2.Level)
 					fmt.Printf("Heading: <%d> \n", n2.Level)
 					// type Heading struct {
 					//   BaseBlock
@@ -355,6 +360,8 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.NodeKind = "KindParagraph"
 					p.DitaTag = "p"
 					p.HtmlTag = "p"
+					p.TTType = "SE"
+					p.GName.Local = "p"
 					println("(para)")
 					// // n2 := n.(*ast.Paragraph)
 					// // sDump = litter.Sdump(*n2)
@@ -393,13 +400,32 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					//   flags uint8
 					// }
 					segment := n2.Segment
+					var theText string
+					theText = string(pCPR.Reader.Value(segment))
+
 					if canSkip {
-						fmt.Printf("(canSkip?) ")
+						println("(Skipt!) ")
+						gTokens = append(gTokens, nil)
+						gDepths = append(gDepths, p.Depth)
+						continue
 					} else if canMerge {
-						fmt.Printf("(canMerge?) ")
+						prevN  := NL[i-1]
+						prevGT := gTokens[i-1]
+						if prevN == nil || prevGT == nil {
+							panic("Can't merge text into prev nil")
+						}
+						prevGT.Otherwords += theText
+						prevGT.NodeText   += theText
+						println("(Merged!) ")
+						gTokens = append(gTokens, nil)
+						gDepths = append(gDepths, p.Depth)
+						continue
 					}
+					p.NodeText = theText
 					// p.NodeText = fmt.Sprintf("KindText:\n | %s", string(TheReader.Value(segment)))
-					p.NodeText = /* fmt.Sprintf("KindText:\n | %s", */ string(pCPR.Reader.Value(segment)) //)
+					// p.NodeText = /* fmt.Sprintf("KindText:\n | %s", */ string(pCPR.Reader.Value(segment)) //)
+					p.TTType = "CD"
+					p.Otherwords = theText
 					fmt.Printf("Text: %s \n", p.NodeText)
 					/*
 						if n.IsRaw() {
@@ -445,6 +471,7 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 					p.HtmlTag = "UNK"
 				}
 			gTokens = append(gTokens, p)
+			gDepths = append(gDepths, p.Depth)
 			}
 	return gTokens, nil
 }

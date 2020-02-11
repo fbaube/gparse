@@ -9,8 +9,8 @@ type TTType string
 var TTTypes = []TTType{
 	"nilerror",
 	"SE",  // StartElement  // could be:  "<s>"
-	"EE",  // EndElement    // could be: "</s>"
-	"SC",  // SelfClosingTag// could be: "<s/>"
+	"EE",  // EndElement    // could be: "</s>" // Not used in GTokens & GTrees
+	"SC",  // SelfClosingTag// could be: "<s/>" // Usage is unclear / TBD
 	"CD",  // CDATA         // could be: "s"
 	"PI",  // Proc. Instr.  // could be: "<?s?>"
 	"Cmt", // XML comment   // could be: "<!--s-->"
@@ -44,6 +44,8 @@ func (TT TTType) LongForm() string {
 		return "Directive"
 	case "SC":
 		return "SelfClose"
+	case "Doc":
+		return "DocuStart"
 	}
-	return "TTType-LongForm-ERROR"
+	return string(TT) 
 }

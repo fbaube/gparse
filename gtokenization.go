@@ -7,6 +7,7 @@ package gparse
 import (
 	"fmt"
 	"io"
+	S "strings"
 	// "github.com/dimchansky/utfbom"
 )
 
@@ -41,8 +42,9 @@ func DumpTo(GTzn []*GToken, w io.Writer) {
 		if nil == pGT {
 			continue
 		}
-		fmt.Fprintf(w, "<!--[%02d]%s--> %s \n",
-			i, pGT.TTType.LongForm(), pGT.Echo())
+		if pGT.TTType == "EE" { continue }
+		fmt.Fprintf(w, "<!--[%02d:L%d]%3s--> %s%s \n",
+			i, pGT.Depth, pGT.TTType, S.Repeat("  ", pGT.Depth), pGT.Echo())
 	}
 }
 

@@ -15,6 +15,7 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 	var XTs []xml.Token
 	var xt    xml.Token
 	var p       *GToken
+	var i int
 	var gTokens = make([]*GToken,0)
 	var gDepths = make([]int, 0)
 	var iDepth  = 1 // current depth
@@ -27,7 +28,7 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 	pCPR.NodeDepths = make([]int, 0)
 	XTs = pCPR.NodeList
 
-	for _, xt = range XTs {
+	for i, xt = range XTs {
 		p = new(GToken)
 		p.BaseToken = xt
 		prDpth  = iDepth
@@ -57,8 +58,6 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			p.Keyword    = ""
 			p.Otherwords = ""
 			// fmt.Printf("<!--Start-Tag--> %s \n", outGT.Echo())
-			gTokens = append(gTokens, p)
-			gDepths = append(gDepths, iDepth)
 			iDepth++
 
 		case xml.EndElement:
@@ -73,8 +72,6 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			p.Keyword = ""
 			p.Otherwords = ""
 			// fmt.Printf("<!--End-Tagnt--> %s \n", outGT.Echo())
-			gTokens = append(gTokens, p)
-			gDepths = append(gDepths, iDepth)
 			iDepth--
 			canSkip = true
 
@@ -86,8 +83,6 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			p.Otherwords = S.TrimSpace(string(xTag.Inst))
 			// fmt.Printf("<!--ProcInstr--> <?%s %s?> \n",
 			// 	outGT.Keyword, outGT.Otherwords)
-			gTokens = append(gTokens, p)
-			gDepths = append(gDepths, iDepth)
 
 		case xml.CharData:
 			// type CharData []byte
@@ -98,6 +93,10 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			p.Otherwords = s
 			if s == "" {
 				canSkip = true
+				p.Depth = prDpth
+				gTokens = append(gTokens, nil)
+				gDepths = append(gDepths, prDpth)
+				continue
 				// ilog.Printf("PCDATA is all whitespace: \n")
 				// DO NOTHING
 				// NOTE This may do weird things to elements
@@ -106,8 +105,6 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			}
 			// } else {
 				// fmt.Printf("<!--Char-Data--> %s \n", outGT.Otherwords)
-			gTokens = append(gTokens, p)
-			gDepths = append(gDepths, iDepth)
 
 		case xml.Comment:
 			// type Comment []byte
@@ -115,8 +112,6 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			// pGT.Keyword remains ""
 			p.Otherwords = S.TrimSpace(string([]byte(xt.(xml.Comment))))
 			// fmt.Printf("<!-- Comment --> <!-- %s --> \n", outGT.Otherwords)
-			gTokens = append(gTokens, p)
-			gDepths = append(gDepths, iDepth)
 
 		case xml.Directive: // type Directive []byte
 			p.TTType = "Dir"
@@ -124,8 +119,6 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			p.Keyword, p.Otherwords = SU.SplitOffFirstWord(s)
 			// fmt.Printf("<!--Directive--> <!%s %s> \n",
 			// 	outGT.Keyword, outGT.Otherwo rds)
-			gTokens = append(gTokens, p)
-			gDepths = append(gDepths, iDepth)
 
 		default:
 			p.TTType = "ERR"
@@ -133,13 +126,18 @@ func DoGTokens_xml(pCPR *PU.ConcreteParseResults_xml) ([]*GToken, error) {
 			panic("OOPS")
 			// continue
 		}
+
+		p.Depth = prDpth
+		gTokens = append(gTokens, p)
+		gDepths = append(gDepths, prDpth)
+
 		if p != nil {
 			sCS := ""
 			if canSkip {
 				sCS = "(canSkip?)"
 			} else {
-				fmt.Printf("L%d%s (%s) %s %s \n",
-					prDpth, S.Repeat("  ", prDpth+1), p.TTType, p.Echo(), sCS)
+				fmt.Printf("[%02d:L%d]%s (%s) %s %s \n",
+					i, prDpth, S.Repeat("  ", prDpth), p.TTType, p.Echo(), sCS)
 			}
 		}
 	}

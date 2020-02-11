@@ -5,8 +5,20 @@ import (
 	S "strings"
 	PU "github.com/fbaube/parseutils"
 	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
+	// "golang.org/x/net/html/atom"
 )
+
+func DataOfHtmlNode(n *html.Node) string {
+	datom  := n.DataAtom
+	datomS := S.TrimSpace(datom.String())
+	dataS  := S.TrimSpace(n.Data)
+	if  dataS == datomS { return dataS }
+	if  dataS == "" { return datomS }
+	if datomS == "" { return dataS }
+	s := fmt.Sprintf("<<%s>> v <<%s>>", dataS, datomS)
+	println("HtmlNode data mismatch!:", s)
+	return s
+}
 
 // DoGTokens_html turns every `MkdnToken` Markdown token into a
 // `GToken`. It's pretty simple, because no tree building is done yet.
@@ -18,8 +30,7 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 	var gTokens = make([]*GToken,0)
 	var gDepths = make([]int, 0)
 	var NT html.NodeType // 1..3
-	var datom atom.Atom
-	// var NKi int
+	var gotXmlProlog bool
 
 	NL = pCPR.NodeList
 	DL = pCPR.NodeDepths
@@ -40,11 +51,9 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 		p.BaseToken = n
 		p.Depth = DL[i]
 		NT = n.Type
-		datom = n.DataAtom
-		datomS := S.TrimSpace(datom.String())
-		dataS  := S.TrimSpace(n.Data)
+		theData := DataOfHtmlNode(n)
 
-		if dataS == "" && NT != html.DocumentNode {
+		if theData == "" && NT == html.TextNode { // NT != html.DocumentNode {
 			// println("HTML continued")
 			gTokens = append(gTokens, nil)
 			gDepths = append(gDepths, p.Depth)
@@ -55,24 +64,16 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 			S.TrimSpace(datom.String()), S.TrimSpace(n.Data), n.Namespace)
 			// and Attr []Attribute
 		*/
-		s := fmt.Sprintf("L%d%s (%d:%s)  ",
-			p.Depth, S.Repeat("  ", p.Depth-1), NT, PU.NTstring(NT))
-		if datomS == dataS {
-			if datomS == "" && NT != html.DocumentNode { // Now handled above!
-				s += "SKIP "
-				} else if datomS != "" {
-					s += fmt.Sprintf("dat:<%s> ", datomS)
-				} else {
-					s += "(nil data) "
-				}
-		} else if datomS == "" {
-			if NT == html.CommentNode && S.HasPrefix(dataS, "?xml ") {
-				s += "XmlProlog: " + dataS
-			} else {
-				s += fmt.Sprintf("DataFld<%s> ", dataS)
-			}
+		s := fmt.Sprintf("[%02d:L%d]%s (%d:%s)  ",
+			i, p.Depth, S.Repeat("  ", p.Depth-1), NT, PU.NTstring(NT))
+
+		if NT == html.CommentNode && S.HasPrefix(theData, "?xml ") {
+			s += "XmlProlog(TODO) " + theData
+			gotXmlProlog = true
+		} else if theData == "" {
+			s += "(nil data) "
 		} else {
-			s += fmt.Sprintf("DatomFld<%s> Data<%s> ",	datomS, dataS)
+			s += fmt.Sprintf("data<%s>", theData)
 		}
 		if n.Namespace != "" {
 			s += fmt.Sprintf("NS<%s> ", n.Namespace)
@@ -87,48 +88,59 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 			println("HTML ERR node")
 		case html.TextNode:
 			p.TTType = "CD"
-			p.Otherwords = dataS
+			p.Otherwords = theData
 		case html.DocumentNode:
 			p.TTType = "Doc"
 		case html.ElementNode:
 			p.TTType = "SE"
 			// A StartElement has an xml.Name (same as GName) and Attributes (GAtt's):
 			// type xml.StartElement struct { Name Name ; Attr []Attr }
-			p.GName.Local = datomS
+			p.GName.Local = theData
 			/*
-						xTag := xml.CopyToken(xt).(xml.StartElement)
-						p.GName = GName(xTag.Name)
-						p.GName.FixNS()
-						// println("SE:", pGT.GName.String())
-						if p.GName.Space == NS_XML {
-							p.GName.Space = "xml:"
-						}
-						for _, A := range xTag.Attr {
-							if A.Name.Space == NS_XML {
-								// println("TODO check name.local: newgtoken/L36 xml:" + A.Name.Local)
-								A.Name.Space = "xml:"
-							}
-							a := GAtt(A)
-							// aa := &a
-							p.GAtts = append(p.GAtts, a) // aa)
-						}
-						p.Keyword = ""
-						p.Otherwords = ""
-						// fmt.Printf("<!--Start-Tag--> %s \n", outGT.Echo())
-						gTokens = append(gTokens, p)
-						continue
-						*/
+				xTag := xml.CopyToken(xt).(xml.StartElement)
+				p.GName = GName(xTag.Name)
+				p.GName.FixNS()
+				// println("SE:", pGT.GName.String())
+				if p.GName.Space == NS_XML {
+					 p.GName.Space = "xml:"
+				}
+				for _, A := range xTag.Attr {
+					if A.Name.Space == NS_XML {
+						// println("TODO check name.local: newgtoken/L36 xml:" + A.Name.Local)
+						A.Name.Space = "xml:"
+					}
+					a := GAtt(A)
+					// aa := &a
+					p.GAtts = append(p.GAtts, a) // aa)
+				}
+				p.Keyword = ""
+				p.Otherwords = ""
+				// fmt.Printf("<!--Start-Tag--> %s \n", outGT.Echo())
+				gTokens = append(gTokens, p)
+				continue
+			*/
 
 		case html.CommentNode:
 			p.TTType = "Cmt"
+			p.Otherwords = theData
+			if gotXmlProlog {
+				p.TTType = "PI"
+			}
 		case html.DoctypeNode:
 			p.TTType = "Dir"
+			p.Otherwords = theData
 			for _, a := range n.Attr {
 				// fmt.Printf("\t Attr: %+v \n", a)
 				fmt.Printf("\t NS<%s> Key<%s> Val: %s \n", a.Namespace, a.Key, a.Val)
 			}
-		// case html.RawNode:
-			// println("HTML RAW node")
+		/*
+		case html.RawNode:
+		  println("HTML RAW node")
+		case html.Directive: // type Directive []byte
+			p.TTType = "Dir"
+			s := S.TrimSpace(string([]byte(xt.(xml.Directive))))
+			p.Keyword, p.Otherwords = SU.SplitOffFirstWord(s)
+		*/
 		}
 		gTokens = append(gTokens, p)
 		gDepths = append(gDepths, p.Depth)
@@ -174,64 +186,10 @@ func DoGTokens_html(pCPR *PU.ConcreteParseResults_html) ([]*GToken, error) {
 						gTokens = append(gTokens, p)
 						continue
 
-					case html.ProcInst:
-						p.TTType = "PI"
-						// type xml.ProcInst struct { Target string ; Inst []byte }
-						xTag := xt.(xml.ProcInst)
-						p.Keyword = S.TrimSpace(xTag.Target)
-						p.Otherwords = S.TrimSpace(string(xTag.Inst))
-						// fmt.Printf("<!--ProcInstr--> <?%s %s?> \n",
-						// 	outGT.Keyword, outGT.Otherwords)
-						gTokens = append(gTokens, p)
-						continue
 
 * /
 
-					case html.CharData:
-						// type CharData []byte
-						p.TTType = "CD"
-						bb := []byte(xml.CopyToken(xt).(xml.CharData))
-						s := S.TrimSpace(string(bb))
-						// pGT.Keyword remains ""
-						p.Otherwords = s
-						if s == "" {
-							// ilog.Printf("PCDATA is all whitespace: \n")
-							// DO NOTHING
-							// NOTE This may do weird things to elements
-							// that have text content models.
-							// println("WARNING: Got an all-whitespace xml.CharData")
-							continue
-						}
-						// fmt.Printf("<!--Char-Data--> %s \n", outGT.Otherwords)
-						gTokens = append(gTokens, p)
-						continue
 
-					case html.CommentNode:
-						// type Comment []byte
-						p.TTType = "Cmt"
-						// pGT.Keyword remains ""
-						p.Otherwords = S.TrimSpace(string([]byte(xt.(xml.Comment))))
-						// fmt.Printf("<!-- Comment --> <!-- %s --> \n", outGT.Otherwords)
-						gTokens = append(gTokens, p)
-						continue
-
-					case html.Directive: // type Directive []byte
-						p.TTType = "Dir"
-						s := S.TrimSpace(string([]byte(xt.(xml.Directive))))
-						p.Keyword, p.Otherwords = SU.SplitOffFirstWord(s)
-						// fmt.Printf("<!--Directive--> <!%s %s> \n",
-						// 	outGT.Keyword, outGT.Otherwo rds)
-						gTokens = append(gTokens, p)
-						continue
-
-					default:
-						p.TTType = "ERR"
-						println(fmt.Sprintf("Unrecognized xml.Token type<%T> for: %+v", xt, xt))
-						panic("OOPS")
-						// continue
-					}
-				}
-			}
 
 /*
 				case ast.KindAutoLink:

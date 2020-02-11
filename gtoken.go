@@ -31,7 +31,7 @@ type GToken struct {
 	// later processing, if (for example) it is a CDATA that has only whitespace.
 	BaseToken interface{}
 	Depth int
-	IsBlock, IsInline bool 
+	IsBlock, IsInline bool
 	// GTagTokType enumerates the types of struct `GToken` and also the types of
 	// struct `GTag`, which are a strict superset. Therefore the two structs use
 	// a shared "type" enumeration. <br/>
@@ -75,6 +75,9 @@ func (T GToken) Echo() string {
 	// var s string
 	switch T.TTType {
 
+	case "Doc":
+		return "<-- DOCUMENT START -->"
+
 	case "SE":
 		return "<" + T.GName.Echo() + T.GAtts.Echo() + ">"
 
@@ -95,9 +98,11 @@ func (T GToken) Echo() string {
 	case "Cmt":
 		return "<!-- " + T.Otherwords + " -->"
 
-	case "DIR":
-	default: // Directive subtypes, after Directives have been normalized
+	case "Dir": // Directive subtypes, after Directives have been normalized
 		return "<!" + T.Keyword + " " + T.Otherwords + ">"
+
+	default:
+		return "??!!" + T.Keyword + " // " + T.Otherwords
 	}
 	return "<!-- ?! GToken.ERR ?! -->"
 }
