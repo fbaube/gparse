@@ -409,17 +409,18 @@ func DoGTokens_mkdn(pCPR *PU.ConcreteParseResults_mkdn) ([]*GToken, error) {
 						gDepths = append(gDepths, p.Depth)
 						continue
 					} else if canMerge {
-						prevN  := NL[i-1]
+						// prevN  := NL[i-1]
 						prevGT := gTokens[i-1]
-						if prevN == nil || prevGT == nil {
-							panic("Can't merge text into prev nil")
+						if prevGT == nil {
+							println("Can't merge text into prev nil")
+						} else {
+							prevGT.Otherwords += theText
+							prevGT.NodeText   += theText
+							println("(Merged!) ")
+							gTokens = append(gTokens, nil)
+							gDepths = append(gDepths, p.Depth)
+							continue
 						}
-						prevGT.Otherwords += theText
-						prevGT.NodeText   += theText
-						println("(Merged!) ")
-						gTokens = append(gTokens, nil)
-						gDepths = append(gDepths, p.Depth)
-						continue
 					}
 					p.NodeText = theText
 					// p.NodeText = fmt.Sprintf("KindText:\n | %s", string(TheReader.Value(segment)))
