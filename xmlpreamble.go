@@ -3,8 +3,8 @@ package gparse
 import (
 	"fmt"
 	S "strings"
-
 	SU "github.com/fbaube/stringutils"
+	"github.com/fbaube/gtoken"
 )
 
 // XmlPreamble is a parse of the optional PI "<?xml ..." at the top of the file.
@@ -78,14 +78,14 @@ func (xp XmlPreamble) String() string {
 
 // XmlCheckForPreamble only prints something. It could return a flag,
 // or even insert the standard XML preamble if one is not present.
-func XmlCheckForPreambleToken(p []*GToken) []*GToken {
+func XmlCheckForPreambleToken(p []*gtoken.GToken) []*gtoken.GToken {
 	if p == nil || len(p) == 0 {
 		panic("Bad arg to XmlCheckForPreamble")
 	}
 	if !ExtraInfo {
 		return p
 	}
-	var pGT *GToken
+	var pGT *gtoken.GToken
 	pGT = p[0]
 	var gotXmlDecl = (pGT.TTType == "PI") && (pGT.Keyword == "xml")
 	if !gotXmlDecl {

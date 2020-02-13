@@ -9,6 +9,7 @@ import (
 	FU "github.com/fbaube/fileutils"
 	SU "github.com/fbaube/stringutils"
 	PU "github.com/fbaube/parseutils"
+	"github.com/fbaube/gtoken"
 )
 
 // XmlCatalog represents a parsed XML catalog file.
@@ -110,15 +111,15 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	if e != nil {
 		return nil, fmt.Errorf("gparse.xml.parseResults: %w", e)
 	}
-	var GTs []*GToken
-	GTs, e = DoGTokens_xml(pCPR)
+	var GTs []*gtoken.GToken
+	GTs, e = gtoken.DoGTokens_xml(pCPR)
 	if e != nil {
 		return nil, fmt.Errorf("gparse.xml.GTokens: %w", e)
 	}
-	var gktnRoot *GToken
-	var gtknEntries []*GToken
-	gktnRoot    = GetFirstByTag(GTs, "catalog")
-	gtknEntries = GetAllByTag(GTs, "public")
+	var gktnRoot *gtoken.GToken
+	var gtknEntries []*gtoken.GToken
+	gktnRoot    = gtoken.GetFirstByTag(GTs, "catalog")
+	gtknEntries = gtoken.GetAllByTag(GTs, "public")
 	if gktnRoot == nil {
 		panic("No <catalog> root elm")
 	}
@@ -163,7 +164,7 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	return pXC, nil
 }
 
-func NewXmlPublicIDfromGToken(pT *GToken) (pID *XmlPublicID, err error) {
+func NewXmlPublicIDfromGToken(pT *gtoken.GToken) (pID *XmlPublicID, err error) {
 	if pT == nil {
 		return nil, nil
 	}
