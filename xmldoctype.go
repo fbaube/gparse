@@ -6,8 +6,8 @@ import (
 	SU "github.com/fbaube/stringutils"
 )
 
-// This file contains LwDITA-specific stuff, but it is hard-coded and
-// does not pull in other packages, so we leave it alone for now.
+// This file contains LwDITA-specific stuff, but it is hard-coded 
+// and does not pull in other packages, so we leave it alone for now.
 
 var knownRootTags = []string{"html", "map", "topic", "task", "concept", "reference"}
 
@@ -30,31 +30,30 @@ var knownRootTags = []string{"html", "map", "topic", "task", "concept", "referen
 // For [Lw]DITA, what interests us is
 // PUBLIC "-//OASIS//DTD (PublicTextDesc)//EN" or sometimes
 // PUBLIC "-//OASIS//ELEMENTS (PublicTextDesc)//EN" or sometimes
-// :ul:
-// :: PUBLIC | SYSTEM = Avbty
-// :: - = Reg'n = Org'zn & DTD are not reg'd with ISO.
-// :: OASIS = Org'zn
-// :: DTD = Public Text Class (CAPACITY | CHARSET | DOCUMENT |
-// DTD | ELEMENTS | ENTITIES | LPD | NONSGML | NOTATION |
-// SHORTREF | SUBDOC | SYNTAX | TEXT )
-// :: (*) = Public Text Description, incl. any version number
-// :: EN = Public Text Language
-// :: URL = optional, explicit
-// -ul-
+//  * PUBLIC | SYSTEM = Avbty
+//  * - = Reg'n = Org'zn & DTD are not reg'd with ISO.
+//  * OASIS = Org'zn
+//  * DTD = Public Text Class (CAPACITY | CHARSET | DOCUMENT |
+//    DTD | ELEMENTS | ENTITIES | LPD | NONSGML | NOTATION |
+//    SHORTREF | SUBDOC | SYNTAX | TEXT )
+//  * (*) = Public Text Description, incl. any version number
+//  * EN = Public Text Language
+//  * URL = optional, explicit
+// 
 type XmlDoctype struct {
 	raw string
 	// PUBLIC
 	Availability string
 	// ??
 
-	// NOTE this is dangerous
+	// NOTE This is dangerous
 	XmlPublicID
 	// and SHOULD BE replaced by this
 	// rawXmlPublicID string
 
 	// TopTag is the tag declated in the DOCTYPE
 	TopTag string
-	// Micodo is here because a DOCTYPE does indeed let us create one.
+	// Mtype is here because a DOCTYPE does indeed let us create one.
 	Mtype []string
 }
 
@@ -69,7 +68,7 @@ type XmlDoctype struct {
 // DOCTYPE map   PUBLIC "-//OASIS//DTD LIGHTWEIGHT DITA Map//EN"
 // DOCTYPE html (HTML5)
 // DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" (MAYBE!)
-// NOTE that Mtype[] is non-nil but each element can be "", the empty string.
+// NOTE Mtype[] is non-nil but each element can be "", the empty string.
 func NewXmlDoctypeInclMtype(s string) (*XmlDoctype, error) {
 	if s == "" {
 		return nil, nil
@@ -166,14 +165,5 @@ func (xd XmlDoctype) String() string {
 	if "" == xd.TopTag {
 		panic("xd.TopTag")
 	}
-	/*
-		// TODO Also print System ID, if present
-		if xd.MicodoMainType == "html" && xd.MicodoSubType == "html5 "{
-			return "<!DOCTYPE html>\n"
-		}
-		return fmt.Sprintf("<!DOCTYPE %s %s %s><!--mcd:%s:%s-->\n",
-			xd.TopTag, xd.Availability, xd.XmlPublicID.String(),
-			xd.MicodoMainType, xd.MicodoSubType)
-	*/
 	return "    gtoken.XmlDoctype.S: " + xd.Echo()
 }

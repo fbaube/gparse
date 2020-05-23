@@ -9,10 +9,10 @@ are sane alternatives to XML. There always has been. from humble CSV up to
 fancier JSON/Python/Ruby direct data expression languages.
 
 A huge chunk of the world doesn't need mixed content or even know what it
-is. They are the folks who look at the XML apis and wonder "why is this so
+is. They are the folks who look at the XML APIs and wonder "why is this so
 difficult?"
 
-XML is, and always was, a document centric data representation language.
+XML is, and always was, a document-centric data representation language.
 
 Hence mixed content. Hence XML. If you need mixed content you really need it.
 If you don't need it, sometimes you cannot even conceptualise the problem it
@@ -31,5 +31,4 @@ The nut that needs to be cracked to stop this happening is the Mixed Content
 Case nut.
 
 [ Go takes the fielded data fork. ]
-
 */

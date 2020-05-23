@@ -132,7 +132,7 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	for _, GT := range gtknEntries {
 		// println("  CAT-ENTRY:", GT.Echo()) // entry.GAttList.Echo())
 		pID, e := NewXmlPublicIDfromGToken(GT)
-		// NOTE Gotta fix the filepath
+		// NOTE:140 Gotta fix the filepath
 		pID.AbsFilePath = FU.AbsFilePath(
 			FU.AbsWRT(string(pID.AbsFilePath), FP.Dir(string(fpath))))
 		if e != nil {
@@ -146,12 +146,12 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 
 	// ==============================
 
-	// NOTE: The following code is UGLY and needs to be FIXED.
+	// NOTE The following code is UGLY and needs to be FIXED.
 	pXC.AbsFilePathParts = *FU.AbsFP(fpath).NewAbsPathParts()
 	fileDir := path.Dir(pXC.AbsFilePathParts.Echo())
 	println("XML catalog fileDir:", fileDir)
 	for _, entry := range pXC.XmlPublicIDs {
-		println("  Entry's AbsFilePath:", /* FIXME MU.Tilded */ (entry.AbsFilePath.S()))
+		println("  Entry's AbsFilePath:", /* FIXME:60 MU.Tilded*/ (entry.AbsFilePath.S()))
 		// entry.AbsFilePath = FU.AbsFilePath(path.Join(fileDir, entry.AbsFilePath.S()))
 		entry.AbsFilePath = FU.AbsFilePath(fileDir + FU.PathSep + string(entry.AbsFilePath))
 	}

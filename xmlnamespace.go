@@ -18,7 +18,7 @@ var XML_NS_Recognized = []string{
 	// `lang` identifies the human language used in the
 	// scope of the element to which it's attached.
 	"lang",
-	// `space (default|preserve)´ says whether white space
+	// `space (default|preserve)` says whether white space
 	// to be considered as significant in the scope of the
 	// element to which it's attached.
 	"space",
@@ -41,7 +41,7 @@ var XML_NS_Recognized = []string{
 // - https://www.w3.org/2001/xml.xsd
 // - https://www.w3.org/TR/xmlbase/
 
-// NOTE also: other names beginning 'xml'.
+// NOTE Also other names beginning 'xml'.
 // The XML spec reserves all names beginning with the letters 'xml'
 // in any combination of upper & lower -case for use by the W3C.
 // To date three such names have been given definitions — although
@@ -49,9 +49,9 @@ var XML_NS_Recognized = []string{
 // as a convenience:
 // - "xml": See the XML declaration and the XML namespace prefix.
 // - "xmlns": See namespace declarations.
-// - xml-stylesheet: See the xml-stylesheet processing instruction.
+// - "xml-stylesheet": See the xml-stylesheet processing instruction.
 
-// NOTE about "xml:id": https://www.w3.org/TR/xml-id/ :
+// NOTE About "xml:id": https://www.w3.org/TR/xml-id/ :
 // The normalized value of the attribute is an NCName
 // IAW "Namespaces in XML Recommendation" i.e. NCName
 // for XML 1.0 (or NCName for XML 1.1).
@@ -64,9 +64,9 @@ var XML_NS_Recognized = []string{
 //
 // <!ATTLIST  someElement  xml:id  ID  #IMPLIED >
 //
-// DTD authors are encouraged to declare attributes named xml:id
-// with the type ID. A document that uses xml:id attributes that
-// have a declared type other than ID will always generate xml:id errors.
+// DTD authors are encouraged to declare attributes named xml:id with
+// the type ID. A document that uses xml:id attributes that have a
+// declared type other than ID will always generate xml:id errors.
 //
 // Consumers of documents validated using properly declared xml:id
 // attributes can recognize IDs through the attribute type property.

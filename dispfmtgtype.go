@@ -1,10 +1,9 @@
 package gparse
 
-// DispFmtgType specifies the "rendering context".
+// DispFmtgType (display formatting type) specifies the "rendering context".
 type DispFmtgType string
 
-// DispFmtgTypes is CDATA, ID/REF, etc., plus a reserved/TBD entry for "enum".
-// NOTE that these strings are used in comments thruout this package.
+// DispFmtgTypes specifies how an element fits into layout. 
 var DispFmtgTypes = []DispFmtgType{
 	"nilerror",
 	"ROOT",  // Document root
@@ -13,6 +12,7 @@ var DispFmtgTypes = []DispFmtgType{
 	"NONE",  //
 }
 
+// LongForm returns a marginally-more-user-frenly description.
 func (DFT DispFmtgType) LongForm() string {
 	switch DFT {
 	case "ROOT":
