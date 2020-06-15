@@ -9,89 +9,36 @@ import (
 	FU "github.com/fbaube/fileutils"
 	SU "github.com/fbaube/stringutils"
 	PU "github.com/fbaube/parseutils"
+	XM "github.com/fbaube/xmlmodels"
 	"github.com/fbaube/gtoken"
 )
 
-// XmlCatalog represents a parsed XML catalog file.
-type XmlCatalog struct {
+// XmlCatalogRecord represents a parsed XML catalog file, at the top level.
+type XmlCatalogRecord struct {
 	XMLName xml.Name `xml:"catalog"̀`
 	// "public" or "system"
-	Prefer       string        `xml:"prefer,attr"`
-	XmlPublicIDs []XmlPublicID `xml:"public"`
+	Prefer  string   `xml:"prefer,attr"`
+	XmlPublicIDsubrecords []XM.XmlPublicIDcatalogRecord `xml:"public"`
 	// We do this so we can peel off the directory path
 	FU.AbsFilePathParts
 }
 
-// XmlPublicID representa a line item from a parsed XML catalog file.
-type XmlPublicID struct {
-	XMLName  xml.Name `xml:"public"`
-	PublicID string   `xml:"publicId,attr"`
-	// The short form, as declared in the catalog file.
-	// TODO It's a string, but let's hope it gets decoded OK.
-	SystemID `xml:"uri,attr"`
-	// The long form, as resolved
-	FU.AbsFilePath
-	error // in case an entry barfs
-
-	// "+" or "-"
-	Registration string
-	// If not OASIS then could be any one of a myriad of others.
-	IsOasis bool
-	// "OASIS" or something else
-	Organization string
-	// PTClass is typically "DTD" (filename.dtd)
-	// or "ELEMENTS" (filename.mod)
-	PublicTextClass string
-	// PTDesc is the distinguishing string, e.g.
-	// PUBLIC "-//OASIS//DTD (PublicTextDesc)//EN".
-	// Sometimes it can have an optional embedded
-	// version number, such as "DITA 1.3".
-	PublicTextDesc string
-}
-
-func NewXmlPublicID(s string) (*XmlPublicID, error) {
-	// println("NewXmlPublicID:", s)
-	if s == "" {
-		return nil, nil
-	}
-	if SU.IsXmlQuoted(s) {
-		s = SU.MustXmlUnquote(s)
-	}
-	// -//OASIS//DTD LIGHTWEIGHT DITA Topic//EN
-	var ss []string
-	ss = S.Split(s, "/")
-	// fmt.Printf("(DD) (%d) %#v \n", len(ss), ss)
-	ss = SU.DeleteEmptyStrings(ss)
-	// {"-", "OASIS", "DTD LIGHTWEIGHT DITA Topic", "EN"}
-	// fmt.Printf("(DD) (%d) %#v \n", len(ss), ss)
-	if len(ss) != 4 || ss[0] != "-" || ss[3] != "EN" {
-		return nil, fmt.Errorf("Malformed Public ID<" + s + ">")
-	}
-	p := new(XmlPublicID)
-	p.Organization = ss[1]
-	p.IsOasis = ("OASIS" == p.Organization)
-	p.PublicTextClass, p.PublicTextDesc = SU.SplitOffFirstWord(ss[2])
-	// ilog.Printf("PubID|%s|%s|%s|\n", p.Organization, p.PTClass, p.PTDesc)
-	// fmt.Printf("(DD:pPID) PubID<%s|%s|%s>\n", p.Organization, p.PTClass, p.PTDesc)
-	return p, nil
-}
-
-func (p *XmlCatalog) GetByPublicID(s string) *XmlPublicID {
+func (p *XmlCatalogRecord) GetByPublicID(s string) *XM.XmlPublicIDcatalogRecord {
 	if s == "" {
 		return nil
 	}
-	for _, entry := range p.XmlPublicIDs {
-		if s == entry.PublicID {
+	for _, entry := range p.XmlPublicIDsubrecords {
+		if s == string(entry.XmlPublicID) {
 			return &entry
 		}
 	}
 	return nil
 }
 
-// NewXmlCatalogFromFile is a convenience function that reads in the
+// NewXmlCatalogRecordFromFile is a convenience function that reads in the
 // file and then processes the file contents. It is not clear what the
 // constraints on the path are (but a relative path should work okay).
-func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
+func NewXmlCatalogRecordFromFile(fpath string) (pXC *XmlCatalogRecord, err error) {
 	if fpath == "" {
 		return nil, nil
 	}
@@ -123,25 +70,25 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	if gktnRoot == nil {
 		panic("No <catalog> root elm")
 	}
-	pXC = new(XmlCatalog)
+	pXC = new(XmlCatalogRecord)
 	pXC.XMLName = xml.Name(gktnRoot.GName)
 	pXC.Prefer = gktnRoot.GetAttVal("prefer")
-	pXC.XmlPublicIDs = make([]XmlPublicID, 0)
+	pXC.XmlPublicIDsubrecords = make([]XM.XmlPublicIDcatalogRecord, 0)
 	// We do this so we can peel off the directory path
 	// pXC.FileFullName
 	for _, GT := range gtknEntries {
 		// println("  CAT-ENTRY:", GT.Echo()) // entry.GAttList.Echo())
 		pID, e := NewXmlPublicIDfromGToken(GT)
-		// NOTE:140 Gotta fix the filepath
-		pID.AbsFilePath = FU.AbsFilePath(
-			FU.AbsWRT(string(pID.AbsFilePath), FP.Dir(string(fpath))))
+		// NOTE Gotta fix the filepath
+		pID.AbsFilePath = // FU.AbsFilePath(
+			FU.AbsWRT(string(pID.AbsFilePath), FP.Dir(string(fpath))) // )
 		if e != nil {
 			panic(e)
 		}
 		if pID == nil {
 			println("Got NIL from:", GT.Echo())
 		}
-		pXC.XmlPublicIDs = append(pXC.XmlPublicIDs, *pID)
+		pXC.XmlPublicIDsubrecords = append(pXC.XmlPublicIDsubrecords, *pID)
 	}
 
 	// ==============================
@@ -150,10 +97,10 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	pXC.AbsFilePathParts = *FU.AbsFP(fpath).NewAbsPathParts()
 	fileDir := path.Dir(pXC.AbsFilePathParts.Echo())
 	println("XML catalog fileDir:", fileDir)
-	for _, entry := range pXC.XmlPublicIDs {
-		println("  Entry's AbsFilePath:", /* FIXME:60 MU.Tilded*/ (entry.AbsFilePath.S()))
+	for _, entry := range pXC.XmlPublicIDsubrecords {
+		println("  Entry's AbsFilePath:", /* FIXME:60 MU.Tilded*/ (entry.AbsFilePath)) // .S()))
 		// entry.AbsFilePath = FU.AbsFilePath(path.Join(fileDir, entry.AbsFilePath.S()))
-		entry.AbsFilePath = FU.AbsFilePath(fileDir + FU.PathSep + string(entry.AbsFilePath))
+		entry.AbsFilePath = /*FU.AbsFilePath(*/ fileDir + FU.PathSep + string(entry.AbsFilePath)//)
 	}
 	ok := pXC.Validate()
 	if !ok {
@@ -164,14 +111,14 @@ func NewXmlCatalogFromFile(fpath string) (pXC *XmlCatalog, err error) {
 	return pXC, nil
 }
 
-func NewXmlPublicIDfromGToken(pT *gtoken.GToken) (pID *XmlPublicID, err error) {
+func NewXmlPublicIDfromGToken(pT *gtoken.GToken) (pID *XM.XmlPublicIDcatalogRecord, err error) {
 	if pT == nil {
 		return nil, nil
 	}
 	println("L.173 NEW_XmlPublicIDfromGToken:", pT.Echo())
 	fmt.Printf("L.174 GT: %+v \n", *pT)
 	NS := pT.GName.Space
-	if NS != "" && NS != NS_OASIS_XML_CATALOG {
+	if NS != "" && NS != XM.NS_OASIS_XML_CATALOG {
 		panic("XML catalog entry has bad NS: " + NS)
 	}
 	println("L.179 Space:", pT.GName.Space, "/ Local:", pT.GName.Local)
@@ -194,12 +141,12 @@ func NewXmlPublicIDfromGToken(pT *gtoken.GToken) (pID *XmlPublicID, err error) {
 	if len(ss) != 4 || ss[0] != "-" || ss[3] != "EN" {
 		return nil, fmt.Errorf("Malformed Public ID<%s>", attPid)
 	}
-	pID = new(XmlPublicID)
+	pID = new(XM.XmlPublicIDcatalogRecord)
 	// NOTE DANGER This is probably relative not absolute,
 	// and has to be fixed by the caller
-	pID.PublicID = attPid
-	pID.SystemID = SystemID(attUri)
-	pID.AbsFilePath = FU.AbsFilePath(attUri)
+	pID.XmlPublicID = XM.XmlPublicID(attPid)
+	pID.XmlSystemID = XM.XmlSystemID(attUri)
+	pID.AbsFilePath = attUri // FU.AbsFilePath(attUri)
 	pID.Organization = ss[1]
 	pID.IsOasis = ("OASIS" == pID.Organization)
 	pID.PublicTextClass, pID.PublicTextDesc = SU.SplitOffFirstWord(ss[2])
@@ -215,31 +162,32 @@ func NewXmlPublicIDfromGToken(pT *gtoken.GToken) (pID *XmlPublicID, err error) {
 // It assumes that the catalog has already been loaded from an XML catalog
 // file on-disk. The return value is false if _any_ entry fails to load,
 // but also each entry has its own error field.
-func (p *XmlCatalog) Validate() (retval bool) {
+func (p *XmlCatalogRecord) Validate() (retval bool) {
 	retval = true
-	for i, pEntry := range p.XmlPublicIDs {
-		if "" == pEntry.PublicID {
+	for i, pEntry := range p.XmlPublicIDsubrecords {
+		if "" == pEntry.XmlPublicID {
 			println("OOPS:", pEntry.String())
 			panic(fmt.Sprintf("Missing Public ID in catalog entry[%d]: %s",
 				i, p.AbsFilePathParts.String()))
 		}
 		var abspath FU.AbsFilePath
-		abspath = p.AbsFilePathParts.DirPath.Append(string(pEntry.SystemID))
+		abspath = p.AbsFilePathParts.DirPath.Append(string(pEntry.XmlSystemID))
 		// pIF, e := FU.NewInputFile(FU.RelFilePath(abspath)) // downcast
 		pIF := FU.NewCheckedContentFromPath(abspath.S())
 		// (&FU.CheckedPath{RelFilePath: abspath.AsRelFP()}).Resolve() //.Check()
 		if !pIF.IsOkayFile() { // pIF.PathType() != "FILE" { // e != nil {
 			fmt.Printf("==> Catalog<%s>: Bad System ID / URI <%s> for Public ID <%s> \n",
-				p.AbsFilePathParts.String(), pEntry.SystemID, pEntry.PublicID)
+				p.AbsFilePathParts.String(), pEntry.XmlSystemID, pEntry.XmlPublicID)
 			retval = false
 			continue
 		}
 		// NOTE The loop variable "entry" is by value, not reference !
 		// entry.FilePath = FU.FilePath(pIF.FileFullName.String())
-		p.XmlPublicIDs[i].AbsFilePath = FU.AbsFilePath(pIF.AbsFilePathParts.String())
+		p.XmlPublicIDsubrecords[i].AbsFilePath =
+			/*FU.AbsFilePath(*/ pIF.AbsFilePathParts.String()//)
 
 		// Now do some fancy parsing of the Public ID
-		var s = pEntry.PublicID
+		var s = string(pEntry.XmlPublicID)
 		if SU.IsXmlQuoted(s) {
 			s = SU.MustXmlUnquote(s)
 		}
@@ -252,7 +200,7 @@ func (p *XmlCatalog) Validate() (retval bool) {
 		// fmt.Printf("(DD) (%d) %#v \n", len(ss), ss)
 		if len(ss) != 4 || ss[0] != "-" || ss[3] != "EN" {
 			retval = false
-			pEntry.error = fmt.Errorf("Malformed Public ID: %s", s)
+			pEntry.Err = fmt.Errorf("Malformed Public ID: %s", s)
 			continue
 		}
 		pEntry.Organization = ss[1]
@@ -262,11 +210,4 @@ func (p *XmlCatalog) Validate() (retval bool) {
 		// fmt.Printf("(DD:pPID) PubID<%s|%s|%s>\n", p.Organization, p.PTClass, p.PTDesc)
 	}
 	return true
-}
-
-// String returns the public ID _unquoted_.
-// <!DOCTYPE topic "-//OASIS//DTD LIGHTWEIGHT DITA Topic//EN">
-func (p XmlPublicID) String() string {
-	return fmt.Sprintf("%s//%s//%s %s//EN",
-		p.Registration, p.Organization, p.PublicTextClass, p.PublicTextDesc)
 }
