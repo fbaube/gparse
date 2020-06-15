@@ -3,7 +3,7 @@ package gparse
 import (
 	"encoding/xml"
 	"fmt"
-	"path"
+	// "path"
 	FP "path/filepath"
 	S "strings"
 	FU "github.com/fbaube/fileutils"
@@ -20,7 +20,7 @@ type XmlCatalogRecord struct {
 	Prefer  string   `xml:"prefer,attr"`
 	XmlPublicIDsubrecords []XM.XmlPublicIDcatalogRecord `xml:"public"`
 	// We do this so we can peel off the directory path
-	FU.AbsFilePathParts
+	FU.AbsFilePath
 }
 
 func (p *XmlCatalogRecord) GetByPublicID(s string) *XM.XmlPublicIDcatalogRecord {
@@ -74,8 +74,7 @@ func NewXmlCatalogRecordFromFile(fpath string) (pXC *XmlCatalogRecord, err error
 	pXC.XMLName = xml.Name(gktnRoot.GName)
 	pXC.Prefer = gktnRoot.GetAttVal("prefer")
 	pXC.XmlPublicIDsubrecords = make([]XM.XmlPublicIDcatalogRecord, 0)
-	// We do this so we can peel off the directory path
-	// pXC.FileFullName
+
 	for _, GT := range gtknEntries {
 		// println("  CAT-ENTRY:", GT.Echo()) // entry.GAttList.Echo())
 		pID, e := NewXmlPublicIDfromGToken(GT)
@@ -94,13 +93,11 @@ func NewXmlCatalogRecordFromFile(fpath string) (pXC *XmlCatalogRecord, err error
 	// ==============================
 
 	// NOTE The following code is UGLY and needs to be FIXED.
-	pXC.AbsFilePathParts = *FU.AbsFP(fpath).NewAbsPathParts()
-	fileDir := path.Dir(pXC.AbsFilePathParts.Echo())
+	fileDir := pXC.AbsFilePath.DirPath()
 	println("XML catalog fileDir:", fileDir)
 	for _, entry := range pXC.XmlPublicIDsubrecords {
-		println("  Entry's AbsFilePath:", /* FIXME:60 MU.Tilded*/ (entry.AbsFilePath)) // .S()))
-		// entry.AbsFilePath = FU.AbsFilePath(path.Join(fileDir, entry.AbsFilePath.S()))
-		entry.AbsFilePath = /*FU.AbsFilePath(*/ fileDir + FU.PathSep + string(entry.AbsFilePath)//)
+		println("  Entry's AbsFilePath:", /* FIXME:60 MU.Tilded*/ (entry.AbsFilePath)) 
+		entry.AbsFilePath =  fileDir.S() + FU.PathSep + string(entry.AbsFilePath)
 	}
 	ok := pXC.Validate()
 	if !ok {
@@ -168,23 +165,23 @@ func (p *XmlCatalogRecord) Validate() (retval bool) {
 		if "" == pEntry.XmlPublicID {
 			println("OOPS:", pEntry.String())
 			panic(fmt.Sprintf("Missing Public ID in catalog entry[%d]: %s",
-				i, p.AbsFilePathParts.String()))
+				i, p.AbsFilePath)) // Parts.String()))
 		}
 		var abspath FU.AbsFilePath
-		abspath = p.AbsFilePathParts.DirPath.Append(string(pEntry.XmlSystemID))
+		abspath = p.AbsFilePath.DirPath().Append(string(pEntry.XmlSystemID))
 		// pIF, e := FU.NewInputFile(FU.RelFilePath(abspath)) // downcast
 		pIF := FU.NewCheckedContentFromPath(abspath.S())
 		// (&FU.CheckedPath{RelFilePath: abspath.AsRelFP()}).Resolve() //.Check()
 		if !pIF.IsOkayFile() { // pIF.PathType() != "FILE" { // e != nil {
 			fmt.Printf("==> Catalog<%s>: Bad System ID / URI <%s> for Public ID <%s> \n",
-				p.AbsFilePathParts.String(), pEntry.XmlSystemID, pEntry.XmlPublicID)
+				p.AbsFilePath, pEntry.XmlSystemID, pEntry.XmlPublicID)
 			retval = false
 			continue
 		}
 		// NOTE The loop variable "entry" is by value, not reference !
 		// entry.FilePath = FU.FilePath(pIF.FileFullName.String())
 		p.XmlPublicIDsubrecords[i].AbsFilePath =
-			/*FU.AbsFilePath(*/ pIF.AbsFilePathParts.String()//)
+			/*FU.AbsFilePath(*/ pIF.AbsFilePath//)
 
 		// Now do some fancy parsing of the Public ID
 		var s = string(pEntry.XmlPublicID)
