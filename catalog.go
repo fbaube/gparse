@@ -18,12 +18,12 @@ type XmlCatalogRecord struct {
 	XMLName xml.Name `xml:"catalog"̀`
 	// "public" or "system"
 	Prefer  string   `xml:"prefer,attr"`
-	XmlPublicIDsubrecords []XM.XmlPublicIDcatalogRecord `xml:"public"`
+	XmlPublicIDsubrecords []XM.PIDSIDcatalogFileRecord `xml:"public"`
 	// We do this so we can peel off the directory path
 	FU.AbsFilePath
 }
 
-func (p *XmlCatalogRecord) GetByPublicID(s string) *XM.XmlPublicIDcatalogRecord {
+func (p *XmlCatalogRecord) GetByPublicID(s string) *XM.PIDSIDcatalogFileRecord {
 	if s == "" {
 		return nil
 	}
@@ -73,11 +73,11 @@ func NewXmlCatalogRecordFromFile(fpath string) (pXC *XmlCatalogRecord, err error
 	pXC = new(XmlCatalogRecord)
 	pXC.XMLName = xml.Name(gktnRoot.GName)
 	pXC.Prefer = gktnRoot.GetAttVal("prefer")
-	pXC.XmlPublicIDsubrecords = make([]XM.XmlPublicIDcatalogRecord, 0)
+	pXC.XmlPublicIDsubrecords = make([]XM.PIDSIDcatalogFileRecord, 0)
 
 	for _, GT := range gtknEntries {
 		// println("  CAT-ENTRY:", GT.Echo()) // entry.GAttList.Echo())
-		pID, e := NewXmlPublicIDfromGToken(GT)
+		pID, e := NewSIDPIDcatalogRecordfromGToken(GT)
 		// NOTE Gotta fix the filepath
 		pID.AbsFilePath = // FU.AbsFilePath(
 			FU.AbsWRT(string(pID.AbsFilePath), FP.Dir(string(fpath))) // )
@@ -96,7 +96,7 @@ func NewXmlCatalogRecordFromFile(fpath string) (pXC *XmlCatalogRecord, err error
 	fileDir := pXC.AbsFilePath.DirPath()
 	println("XML catalog fileDir:", fileDir)
 	for _, entry := range pXC.XmlPublicIDsubrecords {
-		println("  Entry's AbsFilePath:", /* FIXME:60 MU.Tilded*/ (entry.AbsFilePath)) 
+		println("  Entry's AbsFilePath:", /* FIXME:60 MU.Tilded*/ (entry.AbsFilePath))
 		entry.AbsFilePath =  fileDir.S() + FU.PathSep + string(entry.AbsFilePath)
 	}
 	ok := pXC.Validate()
@@ -108,7 +108,7 @@ func NewXmlCatalogRecordFromFile(fpath string) (pXC *XmlCatalogRecord, err error
 	return pXC, nil
 }
 
-func NewXmlPublicIDfromGToken(pT *gtoken.GToken) (pID *XM.XmlPublicIDcatalogRecord, err error) {
+func NewSIDPIDcatalogRecordfromGToken(pT *gtoken.GToken) (pID *XM.PIDSIDcatalogFileRecord, err error) {
 	if pT == nil {
 		return nil, nil
 	}
@@ -138,7 +138,7 @@ func NewXmlPublicIDfromGToken(pT *gtoken.GToken) (pID *XM.XmlPublicIDcatalogReco
 	if len(ss) != 4 || ss[0] != "-" || ss[3] != "EN" {
 		return nil, fmt.Errorf("Malformed Public ID<%s>", attPid)
 	}
-	pID = new(XM.XmlPublicIDcatalogRecord)
+	pID = new(XM.PIDSIDcatalogFileRecord)
 	// NOTE DANGER This is probably relative not absolute,
 	// and has to be fixed by the caller
 	pID.XmlPublicID = XM.XmlPublicID(attPid)
