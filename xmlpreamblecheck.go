@@ -2,6 +2,7 @@ package gparse
 
 import (
 	"fmt"
+
 	"github.com/fbaube/gtoken"
 )
 
@@ -11,9 +12,11 @@ func XmlCheckForPreambleToken(p []*gtoken.GToken) []*gtoken.GToken {
 	if p == nil || len(p) == 0 {
 		panic("Bad arg to XmlCheckForPreamble")
 	}
-	if !ExtraInfo {
-		return p
-	}
+	/*
+		if !ExtraInfo {
+			return p
+		}
+	*/
 	var pGT *gtoken.GToken
 	pGT = p[0]
 	var gotXmlDecl = (pGT.TTType == "PI") && (pGT.Keyword == "xml")
