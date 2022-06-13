@@ -3,13 +3,13 @@ package gparse
 // DispFmtgType (display formatting type) specifies the "rendering context".
 type DispFmtgType string
 
-// DispFmtgTypes specifies how an element fits into layout. 
+// DispFmtgTypes is a string-enum specifying how an element fits into layout.
 var DispFmtgTypes = []DispFmtgType{
 	"nilerror",
-	"ROOT",  // Document root
-	"BLCK",  //
-	"INLN",  //
-	"NONE",  //
+	"ROOT", // Document root
+	"BLCK", //
+	"INLN", //
+	"NONE", //
 }
 
 // LongForm returns a marginally-more-user-frenly description.

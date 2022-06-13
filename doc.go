@@ -27,17 +27,17 @@
 //
 // Method Naming
 //
-//  * NewFoo(..) always allocates new memory and returns a pointer.
-//  * Echo() echoes an object back in source XML form, but normalized.
-//  * String() outputs a human-friendly form useful for development
-//    and debugging but tipicly indigestible to an XML parser.
+// - NewFoo(..) always allocates new memory and returns a pointer.
+// - Echo() echoes an object back in source XML form, but normalized.
+// - String() outputs a human-friendly form useful for development
+// and debugging but tipicly indigestible to an XML parser.
 //
 // About XML content, including mixed content
 //
 // When working with XML we can generally distinguish three types of files:
-//  * Record-oriented XML data - expressed using XML elements
-//  * Natural language XML documents - also expressed using XML elements,
-//    and known as "mixed content"
+// - Record-oriented XML data - expressed using XML elements
+// - Natural language XML documents - also expressed using XML elements,
+// and known as "mixed content"
 // - Validation rules - generally expressed as XSD, RNG, or DTD. It is
 // interesting to note that DTDs actually obey the same fundamental XML
 // syntax rules as the other two types (record-oriented, mixed content);
