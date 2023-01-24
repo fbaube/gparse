@@ -14,9 +14,11 @@ func XmlCheckForPreambleToken(p []*gtoken.GToken) []*gtoken.GToken {
 	}
 	var pGT *gtoken.GToken
 	pGT = p[0]
-	var gotXmlDecl = (pGT.TTType == "PrI") && (pGT.Keyword == "xml")
+	var gotXmlDecl = (pGT.TTType == gtoken.TT_type_PINST) &&
+		(pGT.TagOrPrcsrDrctv == "xml")
 	if !gotXmlDecl {
-		println("    --> XML preamble not found; could insert one; gtoken.xmlpreamble.L12")
+		println("    --> XML preamble not found; " +
+			"could insert one; gtoken.xmlpreamble")
 	} else {
 		fmt.Printf("    --> XML preamble found \n")
 	}
