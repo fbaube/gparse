@@ -1,5 +1,7 @@
 package gparse
-/*
+
+/* docs only
+
 About Mixed Content
 
 https://seanmcgrath.blogspot.com/2007/01/mixed-content-trying-to-understand-json.html
