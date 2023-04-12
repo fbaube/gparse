@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fbaube/gtoken"
+	XU "github.com/fbaube/xmlutils"
 )
 
 // XmlCheckForPreamble only prints something. It could return a flag,
@@ -14,7 +15,7 @@ func XmlCheckForPreambleToken(p []*gtoken.GToken) []*gtoken.GToken {
 	}
 	var pGT *gtoken.GToken
 	pGT = p[0]
-	var gotXmlDecl = (pGT.TTType == gtoken.TT_type_PINST) &&
+	var gotXmlDecl = (pGT.TDType == XU.TD_type_PINST) &&
 		(pGT.TagOrPrcsrDrctv == "xml")
 	if !gotXmlDecl {
 		println("    --> XML preamble not found; " +
