@@ -3,8 +3,9 @@ package gparse
 import (
 	"fmt"
 
+	CT "github.com/fbaube/ctoken"
 	"github.com/fbaube/gtoken"
-	XU "github.com/fbaube/xmlutils"
+	// XU "github.com/fbaube/xmlutils"
 )
 
 // XmlCheckForPreamble only prints something. It could return a flag,
@@ -15,8 +16,8 @@ func XmlCheckForPreambleToken(p []*gtoken.GToken) []*gtoken.GToken {
 	}
 	var pGT *gtoken.GToken
 	pGT = p[0]
-	var gotXmlDecl = (pGT.TDType == XU.TD_type_PINST) &&
-		(pGT.TagOrPrcsrDrctv == "xml")
+	var gotXmlDecl = (pGT.TDType == CT.TD_type_PINST) &&
+		(pGT.Text == "xml")
 	if !gotXmlDecl {
 		println("    --> XML preamble not found; " +
 			"could insert one; gtoken.xmlpreamble")

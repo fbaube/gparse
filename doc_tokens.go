@@ -5,7 +5,7 @@ package gparse
 // Let's start by examining our raw materials. Note that we do not attach
 // tree-structure information to tokens; this is done via `GTag`s in a `GTree`.
 //
-// "XML": `encoding/xml.Token` (and specifically, `xml.StartElement`):
+// "XML": [XU.XToken] (and specifically, [encoding/xml.StartElement]):
 //   type StartElement struct {
 //     Name Name
 //     Attr []Attr
